@@ -47,8 +47,7 @@ PLAY
                  WHDLoad StronkiesOlympics.slave PRELOAD
 
 FILES
-  StronkiesOlympics.slave   the WHDLoad slave (source: src/whdload.s
-                            on github.com/stronkie/sportsgames)
+  StronkiesOlympics.slave   the WHDLoad slave
   data/SOlymp.game          the game
   data/*.evt                the ceremonies and the events, loaded one
                             at a time

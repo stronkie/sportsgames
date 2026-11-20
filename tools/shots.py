@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""shots.py - screenshots of Stronkie's Olympics for GitHub and itch.io: python3 tools/shots.py <which>"""
+"""shots.py - screenshots of Stronkie's Olympics for the readme and itch.io: python3 tools/shots.py <which>"""
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 import harness
@@ -57,4 +57,4 @@ elif w == 'skate':
         if i > 200 and air and s16(g.am.rw(E('ay'))) < -40 * 16: break
     g.shot('11_skateboarding')
 elif w == 'closing':
-    g = harness.event_game(8, out=OUT); g.run(330); g.shot('12_closing')
+    g = harness.event_game(31, out=OUT); g.run(330); g.shot('12_closing')
