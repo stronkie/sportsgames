@@ -12,7 +12,8 @@ on request. The full game files (V0.1 ADFs, hard drive zip, WHDLoad) are NOT upl
   ("THE ANTHEM OF ..."), played once and quietly like the rest of the music. 17 of the 20 countries
   have their anthem; Norway, Brazil and Mexico still get the stadium fanfare
 - All the anthem melodies are old enough to be free to use (the bass is our own)
-- The print kit (free downloads): print/StronkiesOlympics_Manual.pdf (24-page A5 booklet),
+- The print kit (free downloads, ALREADY ON ITCH since 20 November on request, with 2 new screenshots):
+  print/StronkiesOlympics_Manual.pdf (24-page A5 booklet),
   print/StronkiesOlympics_DiskLabels.pdf (A4, colour + black and white) and print/StronkiesOlympics_Box.pdf
   (A3: the box to cut and fold, and the box in 3D)
 
