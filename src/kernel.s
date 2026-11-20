@@ -15,6 +15,7 @@
 	include	"kernel.i"
 	include	"main_equ.i"
 	include	"build.i"
+	include	"events_equ.i"
 
 CUSTOM		equ	$dff000
 SCRW		equ	40
@@ -28,7 +29,6 @@ EV_CHIP_SIZE	equ	150000
 MAXHUNKS	equ	8
 IOBUFSIZE	equ	4096
 MUSIC_VOL	equ	9			; music: quiet, the effects and voices on top
-REC_SIZE	equ	128
 
 _LVOSupervisor	equ	-30
 _LVOForbid	equ	-132
@@ -1719,7 +1719,7 @@ load_records:
 	move.l	(sp)+,d0
 	cmp.l	#REC_SIZE,d0
 	bne.s	.def
-	cmp.l	#'SOR1',records
+	cmp.l	#'SOR2',records
 	beq.s	.x
 .def	lea	def_records,a0		; the starting world records
 	lea	records,a1
@@ -1731,7 +1731,7 @@ load_records:
 
 save_records:
 	movem.l	d0-d7/a0-a6,-(sp)
-	move.l	#'SOR1',records
+	move.l	#'SOR2',records
 	bsr	os_back
 	move.l	dosbase,d0
 	beq.s	.fail

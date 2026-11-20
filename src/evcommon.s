@@ -144,13 +144,70 @@ time_text:
 	movem.l	(sp)+,d0-d1/a1
 	rts
 
+; waggle -> d0 = 1 for a new step: left after right or right after left (the joystick or the keys)
+waggle:
+	move.w	pressed,d0
+	btst	#J_LEFT,d0
+	beq.s	.r
+	cmp.b	#1,wag_last
+	beq.s	.r
+	move.b	#1,wag_last
+	moveq	#1,d0
+	rts
+.r	btst	#J_RIGHT,d0
+	beq.s	.no
+	cmp.b	#2,wag_last
+	beq.s	.no
+	move.b	#2,wag_last
+	moveq	#1,d0
+	rts
+.no	moveq	#0,d0
+	rts
+
+; hund_text: d0.l = 1/100 seconds (or cm) -> a0 = "10.24"
+hund_text:
+	movem.l	d0-d1/a1,-(sp)
+	lea	timebuf,a1
+	divu	#100,d0
+	move.l	d0,-(sp)
+	and.l	#$ffff,d0
+	moveq	#1,d1
+	jsr	K_NUM(a5)
+	bsr	cat
+	move.b	#'.',(a1)+
+	move.l	(sp)+,d0
+	clr.w	d0
+	swap	d0
+	moveq	#2,d1
+	jsr	K_NUM(a5)
+	bsr	cat
+	clr.b	(a1)
+	lea	timebuf,a0
+	movem.l	(sp)+,d0-d1/a1
+	rts
+
+; result_hund: d0.l = 1/100 s or cm, a0 = unit (" S" / " M") -> CX_SCORE, CX_RESULT
+result_hund:
+	move.l	d0,CX_SCORE(a4)
+	move.l	a0,-(sp)
+	bsr	hund_text
+	lea	CX_RESULT(a4),a1
+	bsr	cat
+	move.l	(sp)+,a0
+	bsr	cat
+	rts
+
 	section	data,data
+s_c_secs	dc.b	' S',0
+s_c_m	dc.b	' M',0
 s_c_pts	dc.b	' PTS',0
 	even
 	section	bss,bss
 ev_sp		ds.l	1
 held		ds.w	1
 pressed		ds.w	1
-timebuf		ds.b	8
+timebuf		ds.b	16
+wag_last	ds.b	1
+	even
 strbuf		ds.b	40
 	section	code,code

@@ -4,12 +4,11 @@
 ;  Created By Mark Stronks, Stronkie Soft (c) 2026
 ;------------------------------------------------------------------------------
 
-NEV		equ	6			; events
 MAXCOMP		equ	7			; 4 players + 3 computer athletes
 NAMELEN		equ	10
-MENU_N		equ	9
-MENU_Y		equ	116
-MENU_DY		equ	10
+MENU_N		equ	11
+MENU_Y		equ	104
+MENU_DY		equ	9
 FIELD_N		equ	6
 CS_NAME		equ	0			; a competitor
 CS_RES		equ	4
@@ -26,9 +25,9 @@ game_main:
 	move.w	#1,nplayers
 	move.w	dbg_event,d0		; (test bench: straight into an event)
 	beq.s	.cer
-	cmp.w	#7,d0
+	cmp.w	#30,d0
 	blo.s	.dbg
-	sub.w	#7,d0			; 7 / 8: the ceremonies
+	sub.w	#30,d0			; 30 / 31: the ceremonies
 	move.w	d0,d7
 	bsr	ceremony
 	rts
@@ -42,42 +41,65 @@ game_main:
 	bsr	compete
 	rts
 .title	tst.b	quit_now
-	bne.s	.x
+	bne	.x
 	bsr	title_screen		; -> d0 = the choice
 	tst.b	quit_now
-	bne.s	.x
-	cmp.w	#8,d0
-	beq.s	.x
-	cmp.w	#5,d0
-	bne.s	.n5
+	bne	.x
+	cmp.w	#10,d0
+	beq	.x
+	cmp.w	#7,d0
+	bne.s	.n7
 	bsr	records_screen
 	bra.s	.title
-.n5	cmp.w	#6,d0
-	bne.s	.n6
+.n7	cmp.w	#8,d0
+	bne.s	.n8
 	bsr	help_screen
 	bra.s	.title
-.n6	cmp.w	#2,d0
+.n8	cmp.w	#4,d0
 	bhi.s	.title
-	move.w	d0,mode
+	move.w	d0,d7			; 0 all, 1 classic, 2 silly, 3 choose, 4 practice
+	moveq	#0,d1
+	cmp.w	#3,d7
+	blo.s	.md
+	moveq	#1,d1
+	cmp.w	#4,d7
+	bne.s	.md
+	moveq	#2,d1
+.md	move.w	d1,mode
 	bsr	make_players		; -> d0 = 0: back to the title
 	tst.w	d0
-	beq.s	.title
+	beq	.title
 	tst.w	mode
 	bne.s	.some
-	moveq	#NEV-1,d0		; all events
-	lea	ev_sel,a0
-.al	st	(a0)+
-	dbf	d0,.al
+	lea	ev_sel,a0		; all / classic / silly
+	moveq	#0,d0
+.al	moveq	#0,d1
+	cmp.w	#1,d7
+	bne.s	.a1
+	cmp.w	#NCLASSIC,d0
+	slo	d1
+	bra.s	.a3
+.a1	cmp.w	#2,d7
+	bne.s	.a2
+	cmp.w	#NCLASSIC,d0
+	shs	d1
+	bra.s	.a3
+.a2	st	d1
+.a3	move.b	d1,(a0,d0.w)
+	addq.w	#1,d0
+	cmp.w	#NEV,d0
+	blo.s	.al
 	tst.b	is_demo			; (the demo: soccer only)
 	beq.s	.go
 	lea	ev_sel+1,a0
 	moveq	#NEV-2,d0
 .dm	clr.b	(a0)+
 	dbf	d0,.dm
+	st	ev_sel
 	bra.s	.go
 .some	bsr	choose_events		; -> d0 = 0: back
 	tst.w	d0
-	beq.s	.title
+	beq	.title
 .go	bsr	compete
 	bra	.title
 .x	bsr	fade_out
@@ -207,7 +229,7 @@ title_screen:
 	and.w	#(1<<J_LEFT)|(1<<J_RIGHT)|(1<<J_FIRE),d4
 	beq	.nf
 	move.w	menu_sel,d0
-	cmp.w	#3,d0			; players: 1-4
+	cmp.w	#5,d0			; players: 1-4
 	bne.s	.n3
 	moveq	#1,d2
 	btst	#J_LEFT,d1
@@ -222,7 +244,7 @@ title_screen:
 	moveq	#1,d0
 .p2	move.w	d0,nplayers
 	bra.s	.redraw
-.n3	cmp.w	#4,d0			; level
+.n3	cmp.w	#6,d0			; level
 	bne.s	.n4
 	moveq	#1,d2
 	btst	#J_LEFT,d1
@@ -237,7 +259,7 @@ title_screen:
 	moveq	#0,d0
 .l2	move.w	d0,level
 	bra.s	.redraw
-.n4	cmp.w	#7,d0			; music
+.n4	cmp.w	#9,d0			; music
 	bne.s	.n7
 	not.b	music_off
 	bra.s	.redraw
@@ -256,7 +278,7 @@ title_screen:
 	bra	.loop
 .nf	btst	#J_ESC,d1
 	beq	.loop
-.esc	moveq	#8,d0
+.esc	moveq	#10,d0
 	rts
 
 menu_move:				; d0 = the new selection
@@ -697,12 +719,12 @@ draw_field:
 ;  choosing the events (some / practice)
 ;==============================================================================
 ; choose_events -> d0 = 1 go, 0 back.  mode 1: any number, mode 2: one (practice)
+; 18 events in two columns of 9 (field 0-17), field 18 = START
 choose_events:
 	lea	menu_rle,a0
 	bsr	menu_screen
 	move.l	#players,cur_ctx
 	lea	s_choose,a0
-	tst.w	mode
 	cmp.w	#2,mode
 	bne.s	.t
 	lea	s_choose1,a0
@@ -714,7 +736,7 @@ choose_events:
 	cmp.w	#2,mode
 	bne.s	.h
 	lea	s_ch_help1,a0
-.h	move.w	#228,d1
+.h	move.w	#232,d1
 	moveq	#11,d2
 	moveq	#-1,d3
 	bsr	k_ctext
@@ -722,21 +744,6 @@ choose_events:
 	moveq	#NEV-1,d0
 .cl	clr.b	(a0)+
 	dbf	d0,.cl
-	moveq	#0,d0			; icons
-.ic	move.w	d0,d1
-	lsl.w	#2,d1
-	lea	icon_tab,a0
-	move.l	(a0,d1.w),a0
-	move.w	d0,d1
-	mulu	#24,d1
-	add.w	#60,d1
-	move.w	d0,-(sp)
-	moveq	#32,d0
-	bsr	k_stamp
-	move.w	(sp)+,d0
-	addq.w	#1,d0
-	cmp.w	#NEV,d0
-	blo.s	.ic
 	clr.w	field
 	moveq	#0,d0
 .d	bsr	draw_ev
@@ -750,32 +757,48 @@ choose_events:
 	tst.b	quit_now
 	bne	.back
 	bsr	k_input
+	move.w	field,d0
 	btst	#J_UP,d1
 	beq.s	.nu
-	move.w	field,d0
 	subq.w	#1,d0
 	bmi.s	.nu
 	bsr	ev_move
-.nu	btst	#J_DOWN,d1
+.nu	move.w	field,d0
+	btst	#J_DOWN,d1
 	beq.s	.nd
-	move.w	field,d0
 	addq.w	#1,d0
 	cmp.w	#NEV,d0
 	bhi.s	.nd
+	bne.s	.dd
+	cmp.w	#2,mode			; (practice: no START)
+	beq.s	.nd
+.dd	bsr	ev_move
+.nd	move.w	field,d0
+	btst	#J_RIGHT,d1
+	beq.s	.nr
+	add.w	#9,d0
+	cmp.w	#NEV,d0
+	bhs.s	.nr
 	bsr	ev_move
-.nd	btst	#J_ESC,d1
+.nr	move.w	field,d0
+	btst	#J_LEFT,d1
+	beq.s	.nl
+	sub.w	#9,d0
+	bmi.s	.nl
+	bsr	ev_move
+.nl	btst	#J_ESC,d1
 	bne	.back
 	btst	#J_FIRE,d1
-	beq.s	.loop
+	beq	.loop
 	move.w	field,d0
 	cmp.w	#NEV,d0
 	beq.s	.start
-	tst.b	is_demo		; (the demo: soccer only)
+	tst.b	is_demo			; (the demo: soccer only)
 	beq.s	.ok
 	tst.w	d0
 	beq.s	.ok
 	bsr	full_only
-	bra.s	.loop
+	bra	.loop
 .ok	lea	ev_sel,a0
 	not.b	(a0,d0.w)
 	bsr	draw_ev
@@ -799,12 +822,12 @@ choose_events:
 	rts
 
 full_only:				; (demo)
-	movem.l	d0-d3/a0,-(sp)
+	movem.l	d0-d4/a0,-(sp)
 	moveq	#CS_BUZZER,d0
 	moveq	#40,d1
 	bsr	k_csfx
 	lea	s_fullonly,a0
-	move.w	#212,d1
+	move.w	#220,d1
 	moveq	#3,d2
 	moveq	#0,d3
 	bsr	k_ctext
@@ -812,15 +835,16 @@ full_only:				; (demo)
 	moveq	#1,d1
 	bsr	k_wait
 	moveq	#0,d0
-	move.w	#212,d1
+	move.w	#220,d1
 	move.w	#320,d2
 	moveq	#8,d3
 	moveq	#0,d4
 	bsr	k_fill
-	movem.l	(sp)+,d0-d3/a0
+	movem.l	(sp)+,d0-d4/a0
 	rts
 
 ev_move:
+	move.w	d1,-(sp)
 	move.w	field,-(sp)
 	move.w	d0,field
 	bsr	draw_ev
@@ -829,36 +853,55 @@ ev_move:
 	moveq	#CS_BEEP,d0
 	moveq	#30,d1
 	bsr	k_csfx
+	move.w	(sp)+,d1
 	rts
 
-; draw_ev: d0 = line (0-5 events, 6 = START)
+; ev_xy: d0 = line (0-17, 18 = START) -> d5 = x, d6 = y
+ev_xy:
+	cmp.w	#NEV,d0
+	bne.s	.e
+	move.w	#128,d5
+	move.w	#204,d6
+	rts
+.e	moveq	#8,d5
+	move.w	d0,d6
+	cmp.w	#9,d6
+	blo.s	.c
+	sub.w	#9,d6
+	move.w	#164,d5
+.c	mulu	#16,d6
+	add.w	#54,d6
+	rts
+
+; draw_ev: d0 = line
 draw_ev:
-	movem.l	d0-d4/a0-a1,-(sp)
+	movem.l	d0-d6/a0-a1,-(sp)
 	move.w	d0,d4
-	move.w	#80,d0
-	move.w	d4,d1
-	mulu	#24,d1
-	add.w	#64,d1
-	move.w	#232,d2
-	moveq	#16,d3
+	bsr	ev_xy
+	move.w	d5,d0			; clear it
+	move.w	d6,d1
+	subq.w	#2,d1
+	move.w	#152,d2
+	moveq	#12,d3
 	move.w	d4,-(sp)
 	moveq	#0,d4
 	bsr	k_fill
 	move.w	(sp)+,d4
 	moveq	#2,d2
-	cmp.w	field,d4
+	cmp.w	#NCLASSIC,d4
+	blo.s	.cl
+	moveq	#7,d2			; (the silly games in light blue)
+.cl	cmp.w	field,d4
 	bne.s	.c
 	moveq	#3,d2
 .c	moveq	#-1,d3
-	move.w	d4,d1
-	mulu	#24,d1
-	add.w	#68,d1
 	cmp.w	#NEV,d4
 	bne.s	.ev
 	cmp.w	#2,mode
 	beq.s	.x
 	lea	s_start,a0
-	move.w	#80,d0
+	move.w	d5,d0
+	move.w	d6,d1
 	bsr	k_text2
 	bra.s	.x
 .ev	lea	strbuf,a1
@@ -870,24 +913,78 @@ draw_ev:
 .ns	addq.l	#1,a1
 	move.b	#' ',(a1)+
 	move.w	d4,d0
-	lsl.w	#4,d0
-	lea	ev_tab,a0
-	move.l	(a0,d0.w),a0
+	bsr	ev_ptr
+	move.l	(a0),a0
 	bsr	copy_str
 	tst.b	is_demo
 	beq.s	.nd
 	tst.w	d4
 	beq.s	.nd
-	lea	s_full,a0
-	bsr	copy_str
-	moveq	#11,d2
-	cmp.w	field,d4
-	bne.s	.nd
-	moveq	#15,d2
+	moveq	#11,d2			; (not in the demo: grey)
 .nd	lea	strbuf,a0
-	move.w	#80,d0
+	move.w	d5,d0
+	move.w	d6,d1
 	bsr	k_text
-.x	movem.l	(sp)+,d0-d4/a0-a1
+.x	movem.l	(sp)+,d0-d6/a0-a1
+	rts
+
+; ev_ptr: d0 = event -> a0 = its line in ev_tab (24 bytes)
+ev_ptr:
+	move.l	d0,-(sp)
+	and.l	#$ffff,d0
+	mulu	#24,d0
+	lea	ev_tab,a0
+	add.l	d0,a0
+	move.l	(sp)+,d0
+	rts
+
+; cur_low -> d0 = 1 when a lower score is better in cur_ev (times)
+cur_low:
+	move.l	a0,-(sp)
+	move.w	cur_ev,d0
+	bsr	ev_ptr
+	move.w	20(a0),d0
+	move.l	(sp)+,a0
+	rts
+
+; fmt_score: d0.l = score of cur_ev, a1 = text -> the score with its unit (a1 after it)
+fmt_score:
+	movem.l	d0-d4/a0,-(sp)
+	move.l	d0,d3
+	move.w	cur_ev,d0
+	bsr	ev_ptr
+	move.w	18(a0),d4		; format
+	move.l	8(a0),-(sp)		; unit
+	move.l	d3,d0
+	tst.w	d4
+	beq.s	.n
+	cmp.l	#99999,d0		; (did not finish)
+	blo.s	.ok
+	lea	s_dnf,a0
+	bsr	copy_str
+	addq.l	#4,sp
+	bra.s	.x
+.ok	divu	#100,d0			; 1/100 s or cm: whole . two digits
+	move.l	d0,d3
+	and.l	#$ffff,d0
+	moveq	#1,d1
+	bsr	k_num
+	bsr	copy_str
+	move.b	#'.',(a1)+
+	swap	d3
+	moveq	#0,d0
+	move.w	d3,d0
+	moveq	#2,d1
+	bsr	k_num
+	bsr	copy_str
+	bra.s	.u
+.n	moveq	#1,d1
+	bsr	k_num
+	bsr	copy_str
+.u	move.b	#' ',(a1)+
+	move.l	(sp)+,a0
+	bsr	copy_str
+.x	movem.l	(sp)+,d0-d4/a0
 	rts
 
 ;==============================================================================
@@ -940,14 +1037,22 @@ run_event:
 	lea	menu_rle,a0
 	bsr	menu_screen
 	move.l	#players,cur_ctx
-	lea	s_event,a1		; "EVENT 1 OF 6"
+	lea	strbuf,a1		; "EVENT 1 OF 18"
+	lea	s_event,a0
+	bsr	copy_str
+	moveq	#0,d0
 	move.w	ev_done,d0
-	add.b	#'0',d0
-	move.b	d0,6(a1)
+	moveq	#1,d1
+	bsr	k_num
+	bsr	copy_str
+	lea	s_of,a0
+	bsr	copy_str
+	moveq	#0,d0
 	move.w	ev_count,d0
-	add.b	#'0',d0
-	move.b	d0,11(a1)
-	move.l	a1,a0
+	moveq	#1,d1
+	bsr	k_num
+	bsr	copy_str
+	lea	strbuf,a0
 	cmp.w	#2,mode
 	bne.s	.np
 	lea	s_practice,a0
@@ -967,6 +1072,16 @@ run_event:
 	move.w	#144,d0
 	move.w	#110,d1
 	bsr	k_stamp
+	move.w	cur_ev,d0		; (which disk)
+	bsr	ev_ptr
+	move.w	16(a0),d0
+	lea	s_disk,a0
+	add.b	#'0',d0
+	move.b	d0,5(a0)
+	move.w	#164,d1
+	moveq	#12,d2
+	moveq	#-1,d3
+	bsr	k_ctext
 	lea	s_loading,a0
 	move.w	#150,d1
 	moveq	#11,d2
@@ -974,13 +1089,9 @@ run_event:
 	bsr	k_ctext
 	bsr	k_fadein
 	move.w	cur_ev,d0
-	add.w	d0,d0
-	lea	ev_disk,a0
-	move.w	(a0,d0.w),d1
-	move.w	cur_ev,d0
-	lsl.w	#4,d0
-	lea	ev_tab+4,a0
-	move.l	(a0,d0.w),a0
+	bsr	ev_ptr
+	move.w	16(a0),d1		; its disk
+	move.l	4(a0),a0		; its file
 	bsr	load_file
 	move.l	d0,ev_entry
 	beq.s	.fail
@@ -1044,7 +1155,7 @@ run_event:
 	moveq	#0,d0
 	rts
 .skip	move.l	cur_ctx,a0
-	clr.l	CX_SCORE(a0)
+	bsr	no_score
 	lea	s_skipped,a1
 	exg	a0,a1
 	lea	CX_RESULT(a1),a1
@@ -1067,11 +1178,20 @@ run_event:
 .stop	moveq	#-1,d0
 	rts
 
+no_score:				; a0 = context: no result (0, or the slowest time)
+	clr.l	CX_SCORE(a0)
+	move.l	d0,-(sp)
+	bsr	cur_low
+	tst.w	d0
+	beq.s	.x
+	move.l	#999999,CX_SCORE(a0)
+.x	move.l	(sp)+,d0
+	rts
+
 ev_name_ptr:				; -> a0 = the name of cur_ev
 	move.w	cur_ev,d0
-	lsl.w	#4,d0
-	lea	ev_tab,a0
-	move.l	(a0,d0.w),a0
+	bsr	ev_ptr
+	move.l	(a0),a0
 	rts
 
 ; play_turn: run the event for cur_ctx
@@ -1111,7 +1231,8 @@ play_turn:
 	tst.l	d0
 	bpl.s	.x
 	move.l	cur_ctx,a1		; given up
-	clr.l	CX_SCORE(a1)
+	move.l	a1,a0
+	bsr	no_score
 	lea	CX_RESULT(a1),a1
 	lea	s_gaveup,a0
 	bsr	copy_str
@@ -1193,22 +1314,26 @@ add_cpu:
 	add.w	d2,d0
 	bpl.s	.pos
 	moveq	#0,d0
-.pos	ext.l	d0
-	move.l	d0,CS_SCORE(a2)
+.pos	and.l	#$ffff,d0
+	move.l	d0,d1
+	bsr	cur_low			; times: lower is better, so turn the range round
+	tst.w	d0
+	beq.s	.hi
+	moveq	#0,d0
+	move.w	cpu_lo,d0
+	add.w	cpu_hi,d0
+	sub.l	d1,d0
+	bpl.s	.hp
+	moveq	#1,d0
+.hp	move.l	d0,d1
+.hi	move.l	d1,CS_SCORE(a2)
 	move.w	ncomp,d1		; the result text: number + unit
 	mulu	#20,d1
 	lea	cpu_res,a1
 	add.l	d1,a1
 	move.l	a1,CS_RES(a2)
-	moveq	#1,d1
-	bsr	k_num
-	bsr	copy_str
-	move.b	#' ',(a1)+
-	move.w	cur_ev,d0
-	lsl.w	#4,d0
-	lea	ev_tab+8,a0
-	move.l	(a0,d0.w),a0
-	bsr	copy_str
+	move.l	CS_SCORE(a2),d0
+	bsr	fmt_score
 	addq.w	#1,ncomp
 	movem.l	(sp)+,d0-d4/a0-a2
 	rts
@@ -1250,11 +1375,10 @@ ready_screen:
 	moveq	#7,d2
 	bsr	k_text
 	move.w	cur_ev,d0		; how to play
-	lsl.w	#4,d0
-	lea	ev_tab+12,a0
-	move.l	(a0,d0.w),a0
+	bsr	ev_ptr
+	move.l	12(a0),a0
 	moveq	#16,d0
-	moveq	#104,d1
+	moveq	#96,d1
 	moveq	#2,d2
 	moveq	#-1,d3
 	bsr	k_text
@@ -1339,9 +1463,18 @@ check_record:
 	lea	records+4,a1
 	add.l	d0,a1
 	move.l	CX_SCORE(a2),d1
+	beq.s	.x			; (nothing)
+	bsr	cur_low
+	tst.w	d0
+	bne.s	.low
 	cmp.l	(a1),d1
 	ble.s	.x
-	move.l	d1,(a1)+		; a new world record!
+	bra.s	.rec
+.low	cmp.l	#99999,d1		; (did not finish)
+	bhs.s	.x
+	cmp.l	(a1),d1
+	bge.s	.x
+.rec	move.l	d1,(a1)+		; a new world record!
 	move.l	a2,a0
 	moveq	#11,d0
 .c	move.b	(a0)+,(a1)+
@@ -1401,12 +1534,16 @@ sort_comps:
 	bne.s	.pass
 .x	movem.l	(sp)+,d0-d7/a0-a1
 	rts
-score_of:				; d0 = competitor -> d2 = score
+score_of:				; d0 = competitor -> d2 = score (times: turned round, higher is better)
 	move.l	a1,-(sp)
 	mulu	#CS_SIZE,d0
 	lea	comps,a1
 	move.l	CS_SCORE(a1,d0.l),d2
-	move.l	(sp)+,a1
+	bsr	cur_low
+	tst.w	d0
+	beq.s	.x
+	neg.l	d2
+.x	move.l	(sp)+,a1
 	rts
 
 results_screen:
@@ -1930,67 +2067,54 @@ records_screen:
 	moveq	#3,d2
 	moveq	#-1,d3
 	bsr	k_ctext2
+	move.w	cur_ev,-(sp)
 	moveq	#0,d7
 .e	cmp.w	#NEV,d7
 	bhs	.done
+	move.w	d7,cur_ev
 	move.w	d7,d6
-	mulu	#32,d6
-	add.w	#46,d6			; y
+	mulu	#11,d6
+	add.w	#44,d6			; y
 	move.w	d7,d0
-	lsl.w	#4,d0
-	lea	ev_tab,a0
-	move.l	(a0,d0.w),a0
-	moveq	#16,d0
+	bsr	ev_ptr
+	move.l	(a0),a0
+	moveq	#0,d0
 	move.w	d6,d1
 	moveq	#3,d2
-	moveq	#-1,d3
+	cmp.w	#NCLASSIC,d7
+	blo.s	.c
+	moveq	#7,d2
+.c	moveq	#-1,d3
 	bsr	k_text
 	move.w	d7,d0
 	mulu	#20,d0
 	lea	records+4,a2
 	add.l	d0,a2
-	move.l	(a2),d0			; score + unit
-	moveq	#1,d1
-	bsr	k_num
-	lea	strbuf,a1
-	bsr	copy_str
-	move.b	#' ',(a1)+
-	move.w	d7,d0
-	lsl.w	#4,d0
-	lea	ev_tab+8,a0
-	move.l	(a0,d0.w),a0
-	bsr	copy_str
+	lea	strbuf,a1		; score + unit
+	move.l	(a2),d0
+	bsr	fmt_score
+	clr.b	(a1)
 	lea	strbuf,a0
-	move.w	#224,d0
+	move.w	#152,d0
 	move.w	d6,d1
 	moveq	#2,d2
 	bsr	k_text
-	move.w	16(a2),d0		; flag, holder
-	cmp.w	#NCTRY,d0
-	bhs.s	.nf
-	lsl.w	#2,d0
-	lea	flag_tab,a0
-	move.l	(a0,d0.w),a0
-	moveq	#16,d0
-	move.w	d6,d1
-	add.w	#11,d1
-	bsr	k_stamp
-.nf	lea	4(a2),a0
+	lea	4(a2),a0		; the holder (10 letters)
 	lea	strbuf,a1
-	moveq	#11,d0
+	moveq	#9,d0
 .cp	move.b	(a0)+,(a1)+
-	dbf	d0,.cp
+	dbeq	d0,.cp
 	clr.b	(a1)
 	lea	strbuf,a0
-	moveq	#48,d0
+	move.w	#240,d0
 	move.w	d6,d1
-	add.w	#15,d1
-	moveq	#7,d2
+	moveq	#11,d2
 	bsr	k_text
 	addq.w	#1,d7
 	bra	.e
-.done	lea	s_pressfire,a0
-	move.w	#236,d1
+.done	move.w	(sp)+,cur_ev
+	lea	s_pressfire,a0
+	move.w	#244,d1
 	moveq	#11,d2
 	moveq	#-1,d3
 	bsr	k_ctext

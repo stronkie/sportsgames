@@ -226,6 +226,31 @@ def icon(kind):
     elif kind == 5:   # skateboard
         d.rounded_rectangle([4, 9, 27, 13], 2, fill=RED, outline=BLACK)
         d.ellipse([7, 13, 11, 17], fill=WHITE, outline=BLACK); d.ellipse([20, 13, 24, 17], fill=WHITE, outline=BLACK)
+    elif kind in (6, 7, 14):   # a runner (hurdle, mug)
+        p = g.run_cycle(6)[1]
+        a = g.athlete(p, w=32, h=48).resize((16, 24), Image.NEAREST)
+        im.paste(a, (8, 0), a.point(lambda v: 0 if v == g.TRANSP else 255).convert('L'))
+        if kind == 7: d.rectangle([22, 13, 29, 14], fill=WHITE); d.line([23, 14, 23, 21], fill=WHITE); d.line([28, 14, 28, 21], fill=WHITE)
+        if kind == 14: d.rectangle([2, 10, 8, 19], fill=BRONZE, outline=BLACK); d.rectangle([3, 9, 7, 11], fill=WHITE)
+    elif kind == 8:   # long jump: sand and an arc
+        d.rectangle([3, 17, 28, 21], fill=TRACK); d.arc([4, 4, 26, 30], 200, 340, fill=WHITE); d.ellipse([22, 13, 25, 16], fill=YELLOW)
+    elif kind == 9:   # javelin
+        d.line([4, 19, 27, 5], fill=SILVER, width=2); d.polygon([(27, 5), (24, 6), (26, 8)], fill=WHITE)
+    elif kind == 10:  # archery target
+        for r, c in ((10, WHITE), (8, BLACK), (6, BLUE), (4, RED), (2, YELLOW)): d.ellipse([16 - r, 12 - r, 16 + r, 12 + r], fill=c)
+    elif kind == 11:  # swimming waves
+        for y in (8, 13, 18): d.arc([2, y - 4, 16, y + 4], 0, 180, fill=LBLUE); d.arc([16, y - 4, 30, y + 4], 0, 180, fill=LBLUE)
+    elif kind == 12:  # barbell
+        d.line([4, 12, 27, 12], fill=SILVER, width=2); d.rectangle([5, 6, 9, 18], fill=RED); d.rectangle([22, 6, 26, 18], fill=RED)
+    elif kind == 13:  # bike
+        d.ellipse([3, 10, 13, 20], outline=WHITE); d.ellipse([18, 10, 28, 20], outline=WHITE); d.line([8, 15, 15, 9, 23, 15, 13, 15, 8, 15], fill=YELLOW)
+    elif kind == 15:  # pie
+        d.ellipse([6, 8, 25, 18], fill=BRONZE, outline=BLACK); d.ellipse([8, 6, 23, 14], fill=WHITE)
+    elif kind == 16:  # penguin
+        d.ellipse([10, 4, 21, 21], fill=BLACK); d.ellipse([13, 8, 19, 20], fill=WHITE); d.polygon([(15, 8), (18, 8), (16, 10)], fill=ORANGE)
+    elif kind == 17:  # toilet roll
+        d.rectangle([9, 6, 21, 18], fill=WHITE, outline=BLACK); d.ellipse([17, 6, 25, 18], fill=WHITE, outline=BLACK); d.ellipse([20, 10, 22, 14], fill=GREY)
+        d.line([9, 18, 4, 21], fill=WHITE)
     return im
 
 # ------------------------------------------------------------------ sounds
@@ -281,7 +306,7 @@ def main():
     o.bobs('runner', [g.athlete(p) for p in g.run_cycle(6)])
     o.bobs('runnerw', [g.athlete(p, woman=True) for p in g.run_cycle(6)])
     o.bobs('flag', [flag(c[1]) for c in C])
-    o.bobs('icon', [icon(i) for i in range(6)])
+    o.bobs('icon', [icon(i) for i in range(18)])
     # medal
     for nm, col in (('medal_g', GOLD), ('medal_s', SILVER), ('medal_b', BRONZE)):
         im = g.bob_canvas(16, 16); d = ImageDraw.Draw(im)
@@ -313,13 +338,6 @@ def main():
             if b & (0x80 >> i): v |= 0xc000 >> (2 * i)
         dbl.append(v)
     for i in range(0, 256, 16): o.raw(('dbl_tab' if i == 0 else '') + '\tdc.w\t' + ','.join('$%04x' % v for v in dbl[i:i + 16]))
-    # the starting world records: score, name (12), country
-    recs = [(9, 'PELE JR', 13), (25, 'B.JORDAN', 5), (16, 'K.KIRALY', 5), (268, 'E.STRIKE', 0), (180, 'K.SLATER', 5), (170, 'T.HAWK', 5)]
-    o.raw("def_records\tdc.b\t'SOR1'")
-    for sc, nm, ct in recs:
-        o.raw('\tdc.l\t%d\n\tdc.b\t\'%s\'%s\n\tdc.w\t%d,0' % (sc, nm, ',0' * (12 - len(nm)), ct))
-    o.raw('\tdcb.b\t%d,0' % (128 - 4 - 6 * 20))
-    o.raw('\teven')
     o.equ('NCTRY', NCTRY)
     n = o.write()
     # backgrounds

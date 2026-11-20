@@ -21,8 +21,8 @@ GFXBASE		equ	$a00			; vectors $832-$9ff
 DOSBASE		equ	$c00			; vectors $b3a-$bff
 PROC		equ	$c40			; a process (pr_CLI set: no WB message)
 COPINIT		equ	$d00			; an empty copper list
-FILEBUF		equ	$d40			; a file being written (the records: 128 of 256 bytes)
-FBUFSIZE	equ	256
+FILEBUF		equ	$d40			; a file being written (the records: 384 of 512 bytes)
+FBUFSIZE	equ	512
 
 ; resload functions
 resload_Abort		equ	4

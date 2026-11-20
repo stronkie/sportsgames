@@ -16,8 +16,12 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 B = os.path.join(ROOT, os.environ.get('DISK_BUILD', 'build'))
 GAME = 'SOlymp'
 DRAWER = 'StronkiesOlympics'
-DISK1 = ['Ceremony.evt', 'Soccer.evt', 'Basket.evt', 'Volley.evt']
-DISK2 = ['Bowling.evt', 'Surfing.evt', 'Skate.evt']
+def disk_list():
+    """build/gen/disks.txt (tools/events.py): event file -> disk"""
+    out = {}
+    for l in open(os.path.join(ROOT, 'build', 'gen', 'disks.txt')):
+        f, d = l.split(); out.setdefault(int(d), []).append(f)
+    return out
 
 # ---------------------------------------------------------------- icons
 WB13 = [(0x00, 0x55, 0xaa), (0xff, 0xff, 0xff), (0x00, 0x00, 0x00), (0xff, 0x88, 0x00)]
@@ -289,11 +293,14 @@ def main():
         evs = ['Ceremony.evt', 'Soccer.evt']
     else:
         name = 'StronkiesOlympics_V%s' % VER
-        img, used = build_adf('Olympics1', main_files + [(f, rd(f)) for f in DISK1], readme, boot)
-        open(os.path.join(B, name + '_Disk1.adf'), 'wb').write(img); out.append((name + '_Disk1.adf', used))
-        img, used = build_adf('Olympics2', [(f, rd(f)) for f in DISK2], readme, boot, startup=False)
-        open(os.path.join(B, name + '_Disk2.adf'), 'wb').write(img); out.append((name + '_Disk2.adf', used))
-        evs = DISK1 + DISK2
+        dl = disk_list(); evs = ['Ceremony.evt']
+        for k in sorted(dl):
+            files = [(f, rd(f)) for f in dl[k]]
+            if k == 1: files = main_files + [('Ceremony.evt', rd('Ceremony.evt'))] + files
+            img, used = build_adf('Olympics%d' % k, files, readme, boot, startup=(k == 1))
+            fn = name + '_Disk%d.adf' % k
+            open(os.path.join(B, fn), 'wb').write(img); out.append((fn, used))
+            evs += dl[k]
     zname = os.path.join(B, name + '_harddrive.zip')
     with zipfile.ZipFile(zname, 'w', zipfile.ZIP_DEFLATED) as z:
         for n, data in main_files: z.writestr(DRAWER + '/' + n, data)
