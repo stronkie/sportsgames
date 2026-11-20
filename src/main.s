@@ -1728,9 +1728,34 @@ medals:
 	moveq	#3,d2
 	moveq	#-1,d3
 	bsr	k_ctext
+	; the anthem of the country that won gold
 	lea	song_fanfare_m,a0
 	lea	song_fanfare_b,a1
-	bsr	k_song
+	tst.w	ncomp
+	beq.s	.song
+	lea	comp_ord,a0
+	move.w	(a0),d0
+	mulu	#CS_SIZE,d0
+	lea	comps,a2
+	move.w	CS_CTRY(a2,d0.l),d6
+	lea	strbuf,a1		; "THE ANTHEM OF JAPAN"
+	lea	s_anthem,a0
+	bsr	copy_str
+	lea	ctry_names,a0
+	move.w	d6,d0
+	lsl.w	#2,d0
+	move.l	(a0,d0.w),a0
+	bsr	copy_str
+	lea	strbuf,a0
+	moveq	#40,d1
+	moveq	#3,d2
+	moveq	#-1,d3
+	bsr	k_ctext
+	lea	anthem_tab,a0
+	lsl.w	#3,d6
+	move.l	4(a0,d6.w),a1
+	move.l	(a0,d6.w),a0
+.song	bsr	k_song
 	bsr	k_fadein
 	moveq	#CS_CHEER,d0
 	moveq	#48,d1

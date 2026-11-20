@@ -1,0 +1,1 @@
+\relative c' {{ \key f \major \time 3/4 a'8. bes16 c4 c4 c8. a16 d8 c8 bes8 a8 g8. g16 c4. bes8 bes4 a4 r4 a8. bes16 c4 c4 c8. a16 d8 c8 bes8 a8 g8. g16 c4. e,8 g4 f4 r4 \repeat volta 2 { g4 g4. bes8 bes8 a8 a2 bes8. bes16 bes4 bes8 d8 d4 c2 a8 c8 f4. e8 e8 d8 d2 c8 c8 bes4. e,8 g4 f4 r4}}}

@@ -1,0 +1,1 @@
+\relative c' { \key es \major \time 4/4 \partial 2 \repeat volta 2 { es4. f8 | g4 f as g | f8 (d) es4 c' bes | as g f g8 (es) | bes'2 } f4 g | f8 (d) bes4 as' g | f8 (d) bes4 bes' as | g4. g8 a4 a8 (bes) | bes2 \repeat volta 2 { es4. d8 | d (c) bes4 c4. bes8 | bes (as) g4 f4. g16 (as) | bes8 [(c)] as [(f)] es4 g8 (f) | es2 } }

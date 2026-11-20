@@ -1,0 +1,1 @@
+\relative c' { \key c \major \time 4/4 \repeat volta 2 {c'4 g e' c8 g' | f e d c c b a g | c4 d e r8 g | f e d c g'2 | } \repeat volta 2 {g4 e8. g16 f4 d8. f16 | e4 c8. e16 d8 g, a b | c4 d e8. f16 g8. f16 e4 d c4 r } }

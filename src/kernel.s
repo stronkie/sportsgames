@@ -1426,9 +1426,16 @@ sound_tick:
 .note	move.w	(a1)+,d2		; period
 	cmp.w	#$fffe,d2
 	blo.s	.play
-	lea	mus_start,a0		; loop
+	beq.s	.end			; $fffe: the end (an anthem: played once)
+	lea	mus_start,a0		; $ffff: again from the start
 	move.l	(a0,d0.w),a1
 	bra.s	.note
+.end	lea	mus_ptr,a0
+	clr.l	(a0,d0.w)
+	move.w	d1,d3
+	lsl.w	#4,d3
+	clr.w	8(a5,d3.w)		; (silent)
+	bra	.next
 .play	move.w	(a1)+,d3
 	lea	mus_ptr,a0
 	move.l	a1,(a0,d0.w)

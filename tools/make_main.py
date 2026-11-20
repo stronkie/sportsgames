@@ -316,6 +316,9 @@ def main():
     sounds(o)
     for line in g.song_lines('song_theme', THEME_M, THEME_B, 7): o.raw(line)
     for line in g.song_lines('song_fanfare', FANFARE_M, FANFARE_B, 6): o.raw(line)
+    import anthems                                  # the national anthems (for the gold medal)
+    assert [a[0] for a in anthems.ANTHEMS] == [c[0] for c in C]
+    for line in anthems.anthem_lines(NCTRY): o.raw(line)
     # tables
     o.raw(g.palette_line('pal_main', PAL))
     o.raw('hair_cols\tdc.w\t$111,$630,$ec6,$c51')

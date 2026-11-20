@@ -52,7 +52,9 @@ THE DISKS
   drawer) and double click SOlymp. WHDLoad: see the WHDLoad zip.
 
 THE MUSIC
-  All the music is written for this game by Stronkie Soft (it is
-  played quietly, so the effects and the voices can be heard).
+  The music is written for this game by Stronkie Soft (it is played
+  quietly, so the effects and the voices can be heard). At the medal
+  ceremony you hear the national anthem of the gold medal winner:
+  these old melodies are free to use, the arrangements are ours.
 
 Created By Mark Stronks, Stronkie Soft  -  https://stronkie.itch.io/

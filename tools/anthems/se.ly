@@ -1,0 +1,1 @@
+\relative c'' { \key bes \major \partial 8 d8 | d4 bes8 bes bes4 c8 d | d4 c8 bes a4 r8 c8 | \break c4 a8 bes c a d8. bes16 | g2 f4 r8 f8 | \break bes4 bes8 c a4 a8 bes | g8. f16 g8 a f4 r8 \repeat volta 2 { f8 | \break bes8. a16 bes8 c d bes es d | c2 bes4 r8 } \bar ":|." }

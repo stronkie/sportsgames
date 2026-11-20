@@ -70,6 +70,7 @@ s_again		dc.b	'FIRE: TRY AGAIN     ESC: MENU',0
 s_newrec	dc.b	' NEW WORLD RECORD! ',0
 s_results	dc.b	'RESULTS',0
 s_ceremony	dc.b	'MEDAL CEREMONY',0
+s_anthem	dc.b	'THE ANTHEM OF ',0
 s_medtab	dc.b	'MEDAL TABLE',0
 s_nomedals	dc.b	'NO MEDALS FOR ANYBODY...',0
 s_champion	dc.b	'THE CHAMPION OF STRONKIE',39,'S OLYMPICS:',0
