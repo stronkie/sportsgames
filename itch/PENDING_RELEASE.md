@@ -12,6 +12,9 @@ on request. The full game files (V0.1 ADFs, hard drive zip, WHDLoad) are NOT upl
   ("THE ANTHEM OF ..."), played once and quietly like the rest of the music. 17 of the 20 countries
   have their anthem; Norway, Brazil and Mexico still get the stadium fanfare
 - All the anthem melodies are old enough to be free to use (the bass is our own)
+- The print kit (free downloads): print/StronkiesOlympics_Manual.pdf (24-page A5 booklet),
+  print/StronkiesOlympics_DiskLabels.pdf (A4, colour + black and white) and print/StronkiesOlympics_Box.pdf
+  (A3: the box to cut and fold, and the box in 3D)
 
 ### V0.2 - TEST VERSION - 20 November 2026
 - 12 new events, 18 in all, each loaded from disk:
