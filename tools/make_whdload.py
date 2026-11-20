@@ -21,7 +21,8 @@ B = os.path.join(ROOT, 'build')
 VER = sys.argv[1] if len(sys.argv) > 1 else md.VER
 PKG = 'StronkiesOlympics'
 DEMO = len(sys.argv) > 2 and sys.argv[2] == 'demo'
-EVS = ['Ceremony.evt', 'Soccer.evt'] if DEMO else ['Ceremony.evt', 'Soccer.evt', 'Basket.evt', 'Volley.evt', 'Bowling.evt', 'Surfing.evt', 'Skate.evt']
+import events
+EVS = ['Ceremony.evt', 'Soccer.evt'] if DEMO else ['Ceremony.evt'] + [e[1] for e in events.EVENTS]
 SRC = os.path.join(ROOT, 'build', 'demo' if DEMO else 'full')
 SLAVE = PKG + '.slave'
 
