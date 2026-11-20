@@ -1,0 +1,29 @@
+; main.s variables (bss)
+players		ds.b	4*CX_SIZE
+comps		ds.b	MAXCOMP*CS_SIZE
+comp_ord	ds.w	MAXCOMP
+cpu_res		ds.b	MAXCOMP*20
+tally		ds.w	NCTRY*3
+pmedals		ds.w	4*3
+ev_entry	ds.l	1
+run_x		ds.w	1
+menu_sel	ds.w	1
+cur_pl		ds.w	1
+field		ds.w	1
+mode		ds.w	1
+level		ds.w	1
+nplayers	ds.w	1
+ev_done		ds.w	1
+ev_count	ds.w	1
+cur_ev		ds.w	1
+cpu_lo		ds.w	1
+cpu_hi		ds.w	1
+ncomp		ds.w	1
+opp_ctry	ds.w	1
+ev_sel		ds.b	NEV
+tally_done	ds.b	NCTRY
+said_title	ds.b	1
+	even
+strbuf		ds.b	64
+dbg_event	ds.w	1
+path_buf	ds.b	64

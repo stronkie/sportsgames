@@ -1,0 +1,358 @@
+"""gfxlib.py - shared helpers for the graphics, sounds and music of Stronkie's Olympics.
+Created By Mark Stronks, Stronkie Soft.
+
+Screens are 320x256, 32 colours, 5 interleaved bitplanes (row = plane0..plane4, 40 bytes each).
+Bobs: image interleaved (W words per plane row), mask one plane (W words per row).
+Colours 25..31 of every palette are the player's colours (filled in by the game):
+  25 hair, 26 skin, 27 skin shade, 28 shirt, 29 shirt shade, 30 shorts, 31 shoes / dark
+"""
+import math, os, random, re, struct, sys
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+
+HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
+FONTDIR = '/usr/share/fonts/truetype/dejavu/'
+HAIR, SKIN, SKIND, SHIRT, SHIRTD, SHORTS, SHOES = range(25, 32)
+TRANSP = 255          # transparent pixel in bob images
+
+def rgb12(c): return (((c >> 8) & 15) * 17, ((c >> 4) & 15) * 17, (c & 15) * 17)
+def to12(rgb): return (min(15, (rgb[0] + 8) // 17) << 8) | (min(15, (rgb[1] + 8) // 17) << 4) | min(15, (rgb[2] + 8) // 17)
+
+# default player colours for previews (Netherlands, light skin, brown hair)
+DEF_PLAYER = [0x630, 0xfc9, 0xc96, 0xf70, 0xb40, 0xfff, 0x222]
+
+def full_pal(pal):
+    p = list(pal) + [0] * (32 - len(pal))
+    p[25:32] = DEF_PLAYER
+    return p
+
+def rgbpal(pal):
+    out = []
+    for c in full_pal(pal): out += list(rgb12(c))
+    return out + [0] * (768 - len(out))
+
+# ------------------------------------------------------------------ packing
+def rle(data):
+    """literal: n (0..127) then n+1 bytes; run: $80|(n-3) (n = 3..130) then the byte"""
+    out = bytearray(); i = 0; lit = bytearray(); n = len(data)
+    def flush():
+        nonlocal lit
+        while lit:
+            c = lit[:128]; out.append(len(c) - 1); out.extend(c); lit = lit[128:]
+    while i < n:
+        j = i
+        while j < n and j - i < 130 and data[j] == data[i]: j += 1
+        if j - i >= 3:
+            flush(); out.append(0x80 | (j - i - 3)); out.append(data[i]); i = j
+        else:
+            lit.append(data[i]); i += 1
+    flush()
+    return bytes(out)
+
+def screen_planes(im):
+    """P image 320x256 -> interleaved planes (51200 bytes)"""
+    a = np.array(im, dtype=np.uint8)
+    assert a.shape == (256, 320), a.shape
+    out = np.zeros((256, 5, 40), dtype=np.uint8)
+    for p in range(5):
+        bits = (a >> p) & 1
+        out[:, p, :] = np.packbits(bits, axis=1)
+    return out.tobytes()
+
+def save_screen(im, path):
+    open(path, 'wb').write(rle(screen_planes(im)))
+
+def bob_data(im):
+    """P image with TRANSP for see-through -> (W words, H, image bytes, mask bytes)"""
+    a = np.array(im, dtype=np.int32)
+    H, w = a.shape
+    W = (w + 15) // 16
+    pad = np.full((H, W * 16), TRANSP, dtype=np.int32); pad[:, :w] = a
+    m = (pad != TRANSP).astype(np.uint8)
+    v = np.where(pad == TRANSP, 0, pad).astype(np.uint8)
+    img = np.zeros((H, 5, W * 2), dtype=np.uint8)
+    for p in range(5):
+        img[:, p, :] = np.packbits((v >> p) & 1, axis=1)
+    mask = np.packbits(m, axis=1)
+    return W, H, img.tobytes(), mask.tobytes()
+
+class Out:
+    """collects bobs, samples and raw data for one include file (+ binary blob for the chip hunk)"""
+    def __init__(self, outdir, prefix):
+        self.dir = outdir; self.prefix = prefix
+        self.chip = bytearray(); self.lines = []; self.data_lines = []
+        self.chip_labels = []
+        os.makedirs(outdir, exist_ok=True)
+    def _chip(self, b, label):
+        if len(self.chip) & 1: self.chip.append(0)
+        off = len(self.chip); self.chip += b
+        if len(self.chip) & 1: self.chip.append(0)
+        self.chip_labels.append((label, off))
+        return off
+    def bob(self, name, im):
+        W, H, img, mask = bob_data(im)
+        oi = self._chip(img, name + '_i'); om = self._chip(mask, name + '_m')
+        self.data_lines.append('%s\tdc.w\t%d,%d\n\tdc.l\t%s_chip+%d,%s_chip+%d' % (name, W, H, self.prefix, oi, self.prefix, om))
+        return W, H
+    def bobs(self, name, ims):
+        for i, im in enumerate(ims): self.bob('%s%d' % (name, i), im)
+        self.data_lines.append('%s_tab\tdc.l\t%s' % (name, ','.join('%s%d' % (name, i) for i in range(len(ims)))))
+    def sample(self, name, x, rate):
+        """float array -1..1 -> signed 8 bit; struct: ptr.l, words.w, period.w"""
+        s = np.clip(np.round(np.asarray(x) * 127), -128, 127).astype(np.int8).tobytes()
+        if len(s) & 1: s += b'\0'
+        s = b'\0\0' + s          # (starts on silence)
+        o = self._chip(s, name + '_s')
+        per = int(round(3546895 / rate))
+        self.data_lines.append('%s\tdc.l\t%s_chip+%d\n\tdc.w\t%d,%d' % (name, self.prefix, o, len(s) // 2, per))
+    def equ(self, name, v): self.lines.append('%s\tequ\t%d' % (name, v))
+    def raw(self, s): self.data_lines.append(s)
+    def write(self):
+        open(os.path.join(self.dir, self.prefix + '_chip.bin'), 'wb').write(bytes(self.chip))
+        L = ['; generated by tools (Stronkie\'s Olympics) - do not edit'] + self.lines
+        open(os.path.join(self.dir, self.prefix + '_equ.i'), 'w').write('\n'.join(L) + '\n')
+        D = ['; generated - data'] + self.data_lines
+        open(os.path.join(self.dir, self.prefix + '_data.i'), 'w').write('\n'.join(D) + '\n')
+        return len(self.chip)
+
+def palette_line(label, pal):
+    return '%s\tdc.w\t%s' % (label, ','.join('$%03x' % c for c in (list(pal) + [0] * 32)[:32]))
+
+def grad_lines(label, items):
+    """items: [(y, colour12)] -> dc.w y,col ... -1"""
+    v = []
+    for y, c in items: v += ['%d' % y, '$%03x' % c]
+    return '%s\tdc.w\t%s,-1' % (label, ','.join(v))
+
+# ------------------------------------------------------------------ fonts
+def ttf(size, bold=True, serif=False, cond=False):
+    name = 'DejaVu' + ('Serif' if serif else 'Sans') + ('Condensed' if cond else '') + ('-Bold' if bold else '') + '.ttf'
+    return ImageFont.truetype(os.path.join(FONTDIR, name), size)
+
+def load_font():
+    txt = open(os.path.join(ROOT, 'assets', 'font_gz.txt')).read()
+    vals = [int(v, 16) for v in re.findall(r'\$([0-9a-f]{2})', txt)]
+    g = [vals[i * 8:i * 8 + 8] for i in range(96)]
+    fix = {'$': [0x18, 0x3e, 0x60, 0x3c, 0x06, 0x7c, 0x18, 0x00], '?': [0x3c, 0x66, 0x06, 0x0c, 0x18, 0x00, 0x18, 0x00],
+           "'": [0x18, 0x18, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00], '_': [0, 0, 0, 0, 0, 0, 0, 0x7e],
+           '%': [0x62, 0x66, 0x0c, 0x18, 0x30, 0x66, 0x46, 0x00],
+           '{': [0x00, 0x10, 0x30, 0x7f, 0x30, 0x10, 0x00, 0x00], '}': [0x00, 0x08, 0x0c, 0xfe, 0x0c, 0x08, 0x00, 0x00],
+           '^': [0x18, 0x3c, 0x7e, 0xff, 0x18, 0x18, 0x18, 0x00], '`': [0x18, 0x18, 0x18, 0xff, 0x7e, 0x3c, 0x18, 0x00],
+           '|': [0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18], '~': [0x00, 0x3c, 0x7e, 0x7e, 0x7e, 0x7e, 0x3c, 0x00]}
+    for ch, gl in fix.items(): g[ord(ch) - 32] = gl
+    return g
+FONT = load_font()
+
+def font_bin():
+    return bytes(v for gl in FONT for v in gl)
+
+def text8(im, x, y, s, col):
+    px = im.load()
+    for i, ch in enumerate(s):
+        o = ord(ch) - 32
+        if not 0 <= o < 96: continue
+        for r in range(8):
+            b = FONT[o][r]
+            for c in range(8):
+                if b & (0x80 >> c):
+                    xx, yy = x + i * 8 + c, y + r
+                    if 0 <= xx < im.width and 0 <= yy < im.height: px[xx, yy] = col
+
+def quantize_to(im_rgb, pal):
+    """RGB image -> P image using exactly the given palette (list of 12 bit colours)"""
+    p = Image.new('P', (1, 1)); flat = []
+    for c in full_pal(pal): flat += list(rgb12(c))
+    p.putpalette(flat + [0] * (768 - len(flat)))
+    return im_rgb.quantize(palette=p, dither=Image.NONE)
+
+def quantize_dither(im_rgb, pal):
+    p = Image.new('P', (1, 1)); flat = []
+    for c in full_pal(pal): flat += list(rgb12(c))
+    p.putpalette(flat + [0] * (768 - len(flat)))
+    return im_rgb.quantize(palette=p, dither=Image.FLOYDSTEINBERG)
+
+def preview(im, pal, path, scale=2):
+    q = im.copy(); q.putpalette(rgbpal(pal))
+    q.convert('RGB').resize((im.width * scale, im.height * scale), Image.NEAREST).save(path)
+
+def bob_canvas(w, h): return Image.new('P', (w, h), TRANSP)
+
+# ------------------------------------------------------------------ the athlete (stick figure with volume)
+def athlete(pose, w=32, h=48, woman=False, scale=1.0, flip=False, kit=None, outline=1, ball=None, back=False):
+    """pose: dict of joint -> (x, y) in a 32x48 box (feet at y 46): head, neck, hip, lsh/rsh not needed:
+    keys: head, neck, hip, lel, lha, rel, rha, lkn, lft, rkn, rft.  'l' = the far limb (drawn first).
+    kit: dict of colour roles (defaults: player colours)."""
+    k = dict(hair=HAIR, skin=SKIN, skind=SKIND, shirt=SHIRT, shirtd=SHIRTD, shorts=SHORTS, shoes=SHOES, out=1)
+    if kit: k.update(kit)
+    S = 4                                    # draw at 4x, then shrink without smoothing
+    big = Image.new('P', (w * S, h * S), TRANSP); d = ImageDraw.Draw(big)
+    def P(n):
+        x, y = pose[n]
+        if flip: x = 32 - x
+        return ((x * scale) * S, (y * scale) * S)
+    def limb(a, b, col, width, oc=None):
+        d.line([P(a), P(b)], fill=col, width=int(width * S * scale))
+        r = width * S * scale / 2
+        for q in (P(a), P(b)): d.ellipse([q[0] - r, q[1] - r, q[0] + r, q[1] + r], fill=col)
+    oc = k['out']
+    # outline pass: everything slightly thicker in the outline colour
+    if outline:
+        for a, b, wd in (('hip', 'lkn', 3.6), ('lkn', 'lft', 3.0), ('neck', 'lel', 3.0), ('lel', 'lha', 2.6),
+                         ('neck', 'hip', 6.2), ('hip', 'rkn', 3.6), ('rkn', 'rft', 3.0), ('neck', 'rel', 3.0), ('rel', 'rha', 2.6)):
+            limb(a, b, oc, wd + 1.4)
+        hx, hy = P('head'); r = 3.9 * S * scale
+        d.ellipse([hx - r, hy - r, hx + r, hy + r], fill=oc)
+    # far limbs (darker)
+    limb('hip', 'lkn', k['skind'], 3.0); limb('lkn', 'lft', k['skind'], 2.4)
+    fx, fy = P('lft'); d.ellipse([fx - 2.2 * S * scale, fy - 1.5 * S * scale, fx + 2.2 * S * scale, fy + 1.5 * S * scale], fill=k['shoes'])
+    limb('neck', 'lel', k['shirtd'], 2.6); limb('lel', 'lha', k['skind'], 2.0)
+    # body
+    limb('neck', 'hip', k['shirt'], 5.6)
+    # shorts: a short thick piece from the hip down both thighs
+    hx, hy = P('hip')
+    for kn in ('lkn', 'rkn'):
+        kx, ky = P(kn); mx, my = hx + (kx - hx) * 0.45, hy + (ky - hy) * 0.45
+        d.line([(hx, hy), (mx, my)], fill=k['shorts'], width=int(4.2 * S * scale))
+    d.ellipse([hx - 2.6 * S * scale, hy - 2.2 * S * scale, hx + 2.6 * S * scale, hy + 2.2 * S * scale], fill=k['shorts'])
+    # near limbs
+    limb('hip', 'rkn', k['skin'], 3.0); limb('rkn', 'rft', k['skin'], 2.4)
+    for kn in ('rkn',):
+        kx, ky = P(kn); mx, my = hx + (kx - hx) * 0.45, hy + (ky - hy) * 0.45
+        d.line([(hx, hy), (mx, my)], fill=k['shorts'], width=int(4.2 * S * scale))
+    fx, fy = P('rft'); d.ellipse([fx - 2.2 * S * scale, fy - 1.5 * S * scale, fx + 2.2 * S * scale, fy + 1.5 * S * scale], fill=k['shoes'])
+    limb('neck', 'rel', k['shirt'], 2.6); limb('rel', 'rha', k['skin'], 2.0)
+    # head and hair
+    hx, hy = P('head'); r = 3.3 * S * scale
+    d.ellipse([hx - r, hy - r, hx + r, hy + r], fill=k['skin'])
+    dirx = 1 if (pose['head'][0] >= pose['neck'][0]) != flip else -1
+    d.chord([hx - r, hy - r - 0.6 * S, hx + r, hy + r * 0.6], 180, 360, fill=k['hair'])
+    if back:
+        d.ellipse([hx - r, hy - r - 0.6 * S, hx + r, hy + r * 0.8], fill=k['hair'])
+        if woman: d.ellipse([hx - 1.6 * S * scale, hy, hx + 1.6 * S * scale, hy + 5.5 * S * scale], fill=k['hair'])
+    elif woman:      # a pony tail at the back of the head
+        bx = hx - dirx * r * 0.9
+        d.ellipse([bx - 1.8 * S * scale, hy - 0.5 * S, bx + 1.8 * S * scale, hy + 4.5 * S * scale], fill=k['hair'])
+    else:
+        xa, xb = sorted((hx - dirx * r, hx - dirx * r * 0.55)); d.rectangle([xa, hy - r * 0.3, xb, hy + r * 0.2], fill=k['hair'])
+    if ball:
+        bx, by, br, bc = ball
+        bx = (32 - bx if flip else bx) * scale * S; by = by * scale * S; br = br * scale * S
+        d.ellipse([bx - br - S, by - br - S, bx + br + S, by + br + S], fill=oc)
+        d.ellipse([bx - br, by - br, bx + br, by + br], fill=bc)
+    small = big.resize((w, h), Image.NEAREST)
+    return small
+
+# common poses (32x48 box, feet at y ~46)
+def pose_stand():
+    return dict(head=(16, 6), neck=(16, 12), hip=(16, 26), lel=(13, 19), lha=(12, 26), rel=(19, 19), rha=(20, 26),
+                lkn=(14, 36), lft=(14, 45), rkn=(18, 36), rft=(18, 45))
+
+def lerp_pose(a, b, t):
+    return {k: (a[k][0] + (b[k][0] - a[k][0]) * t, a[k][1] + (b[k][1] - a[k][1]) * t) for k in a}
+
+def run_cycle(n=6, lean=2):
+    out = []
+    for i in range(n):
+        ph = 2 * math.pi * i / n
+        s = math.sin(ph); c = math.cos(ph)
+        p = dict(head=(17 + lean, 6), neck=(16 + lean, 12), hip=(15, 26))
+        p['rkn'] = (15 + 6 * s, 35 - 2 * max(0, s)); p['rft'] = (15 + 7 * s - 3 * max(0, c), 45 - 4 * max(0, -c))
+        p['lkn'] = (15 - 6 * s, 35 - 2 * max(0, -s)); p['lft'] = (15 - 7 * s - 3 * max(0, -c), 45 - 4 * max(0, c))
+        p['rel'] = (16 + lean - 5 * s, 18); p['rha'] = (17 + lean - 7 * s, 22 - 2 * abs(s))
+        p['lel'] = (16 + lean + 5 * s, 18); p['lha'] = (17 + lean + 7 * s, 22 - 2 * abs(s))
+        out.append(p)
+    return out
+
+# ------------------------------------------------------------------ sound
+def tosamp(x, gain=1.0):
+    x = np.asarray(x, dtype=float) * gain
+    m = np.max(np.abs(x)) + 1e-9
+    return x / m * 0.95 if m > 0.95 else x
+
+def env(n, a=0.005, dcy=0.2, rate=11025):
+    t = np.arange(n) / rate
+    e = np.minimum(1.0, t / max(a, 1e-4)) * np.exp(-t / dcy)
+    return e
+
+def noise(n, seed=1):
+    return np.random.default_rng(seed).uniform(-1, 1, n)
+
+def lowpass(x, k):
+    if k <= 1: return np.asarray(x)
+    return np.convolve(x, np.ones(k) / k, 'same')
+
+def bandnoise(n, lo_k, hi_k, seed=1):
+    x = noise(n, seed)
+    return lowpass(x, lo_k) - lowpass(x, hi_k)
+
+def thump(n, f0, f1, dcy, rate=11025):
+    t = np.arange(n) / rate
+    f = f0 + (f1 - f0) * np.minimum(1, t / 0.05)
+    return np.sin(2 * np.pi * np.cumsum(f) / rate) * np.exp(-t / dcy)
+
+def crowd(seconds, rate=8000, seed=3, swell=True):
+    n = int(seconds * rate)
+    x = np.zeros(n)
+    rng = np.random.default_rng(seed)
+    base = bandnoise(n, 3, 30, seed)
+    # many voices: amplitude modulated noise bands
+    for i in range(10):
+        f = rng.uniform(300, 900)
+        t = np.arange(n) / rate
+        car = np.sin(2 * np.pi * (f + 40 * np.sin(2 * np.pi * rng.uniform(0.5, 2) * t)) * t)
+        x += car * (0.5 + 0.5 * np.sin(2 * np.pi * rng.uniform(1, 4) * t + rng.uniform(0, 6))) * 0.08
+    x += base * 0.9
+    e = np.ones(n)
+    if swell:
+        a = int(0.15 * rate); e[:a] = np.linspace(0, 1, a)
+        r = int(seconds * 0.5 * rate); e[-r:] = np.linspace(1, 0, r) ** 1.5
+    return tosamp(x * e)
+
+def whistle(seconds=0.6, rate=11025):
+    n = int(seconds * rate); t = np.arange(n) / rate
+    f = 2900 + 120 * np.sign(np.sin(2 * np.pi * 28 * t))
+    x = np.sign(np.sin(2 * np.pi * np.cumsum(f) / rate)) * 0.6 + noise(n, 7) * 0.15
+    e = np.minimum(1, t / 0.02) * np.minimum(1, (seconds - t) / 0.08)
+    return tosamp(lowpass(x, 2) * e)
+
+def beep(f, seconds, rate=11025, sq=True):
+    n = int(seconds * rate); t = np.arange(n) / rate
+    x = np.sign(np.sin(2 * np.pi * f * t)) if sq else np.sin(2 * np.pi * f * t)
+    e = np.minimum(1, (seconds - t) / 0.02)
+    return x * 0.7 * e
+
+# speech (the formant robot voice of Stronkie Soft)
+sys.path.insert(0, HERE)
+import voice
+
+def speak(phon, rate=6000, speed=1.0):
+    x = voice.say(phon)
+    if rate != 8000:
+        idx = np.arange(0, len(x), 8000 / rate); x = np.interp(idx, np.arange(len(x)), x)
+    if speed != 1.0:
+        idx = np.arange(0, len(x), speed); x = np.interp(idx, np.arange(len(x)), x)
+    return tosamp(x)
+
+# ------------------------------------------------------------------ music
+NOTES = {'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11}
+def period(note, inst_len=32):
+    """note like 'C3' -> Paula period for an instrument loop of inst_len bytes"""
+    name, octv = note[:-1], int(note[-1])
+    f = 440.0 * 2 ** ((NOTES[name] + 12 * (octv - 4) - 9) / 12)
+    return int(round(3546895 / (f * inst_len)))
+
+def seq(s, tick=6, inst_len=32):
+    """'C4/2 E4/1 -/1 ...' -> words: period, ticks ... (0 = rest), $ffff = loop"""
+    out = []
+    for tok in s.split():
+        n, l = tok.split('/')
+        out += [0 if n == '-' else period(n, inst_len), int(float(l) * tick)]
+    return out + [0xffff]
+
+def song_lines(label, melody, bass, tick=6):
+    m = seq(melody, tick); b = seq(bass, tick)
+    lm = sum(m[1:-1:2]); lb = sum(b[1:-1:2])           # (keep both loops the same length)
+    if lb < lm: b = b[:-1] + [0, lm - lb, 0xffff]
+    if lm < lb: m = m[:-1] + [0, lb - lm, 0xffff]
+    return ['%s_m\tdc.w\t%s' % (label, ','.join(str(v) for v in m)),
+            '%s_b\tdc.w\t%s' % (label, ','.join(str(v) for v in b))]
