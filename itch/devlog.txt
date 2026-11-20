@@ -1,0 +1,14 @@
+TITLE: New game: Stronkie's Olympics - play the free demo!
+TYPE: Major update
+
+A new Amiga 500 game from Stronkie Soft: Stronkie's Olympics!
+
+Make your own athlete - your name, your country (your kit gets its colours), man or woman - and go for gold in six events: soccer (a penalty shoot-out), basketball (the three point shoot-out), beach volleyball, bowling, surfing and skateboarding on the half pipe. Every event is loaded from disk when it starts, just like the sports games we loved.
+
+It starts with an opening ceremony: the athletes march into the stadium with their flags, you carry the torch up the stairs, the flame is lit and the doves fly away. When all events are done, the closing ceremony brings fireworks in the dark stadium and the flame goes out.
+
+The free demo is here now: the opening ceremony and the soccer event (ADF and WHDLoad). Needs an Amiga 500 with Kickstart 1.3 and 1 MB (512K + trapdoor). The full game is in development and coming to this page soon.
+
+Please try it and tell me what you think in the comments - testers get their name in the credits!
+
+Created By Mark Stronks, Stronkie Soft

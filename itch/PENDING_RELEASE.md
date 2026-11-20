@@ -3,7 +3,7 @@
 Mark publishes to itch.io on a fixed day of the week (Sunday), not after every build.
 Everything that is built in between is collected here, so the next itch release shows every version.
 
-**On itch now:** the page (paid) with only the FREE DEMO (opening ceremony + Soccer), published 20 November 2026
+**On itch now:** https://stronkie.itch.io/stronkies-olympics (edit: https://itch.io/game/edit/5407270): public, In development, paid 2.00€, with only the FREE DEMO (2 files: "DEMO (FREE) - Disk image ADF" and "DEMO (FREE) - WHDLoad"), cover, 11 screenshots. Published 20 November 2026 on request. The announcement devlog (itch/devlog.txt) was written but NOT posted: Mark posts it.
 on request. The full game files (V0.1 ADFs, hard drive zip, WHDLoad) are NOT uploaded yet (Mark's wish).
 
 ## Versions waiting to be published
