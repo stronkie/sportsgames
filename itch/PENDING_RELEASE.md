@@ -6,7 +6,16 @@ Everything that is built in between is collected here, so the next itch release 
 **On itch now:** https://stronkie.itch.io/stronkies-olympics (edit: https://itch.io/game/edit/5407270): public, In development, paid 2.00€, with only the FREE DEMO (2 files: "DEMO (FREE) - Disk image ADF" and "DEMO (FREE) - WHDLoad"), cover, 11 screenshots. Published 20 November 2026 on request. The announcement devlog (itch/devlog.txt) was written but NOT posted: Mark posts it.
 on request. The full game files (V0.1 ADFs, hard drive zip, WHDLoad) are NOT uploaded yet (Mark's wish).
 
+## PUBLISHED 20 November 2026 (on Mark's request, not on a Sunday)
+V0.2, V0.3 and V0.4 went to itch together: the full game V0.4 (3 ADFs in one zip + WHDLoad, paid at the page
+price 2.00 EUR), the new demo, the print kit, new description, 14 new screenshots, new cover, status Released.
+Devlog: https://stronkie.itch.io/stronkies-olympics/devlog/1793883/stronkies-olympics-is-out-18-events-national-anthems-and-the-amiga-look
+Nothing is waiting now; new builds go below.
+
 ## Versions waiting to be published
+(none)
+
+## Published versions
 ### V0.4 - TEST VERSION - 20 November 2026
 - New Amiga look for every screen: real stadium stands (roof, floodlights, rows of spectators,
   aisles) instead of coloured dots, sponsor boards, dithered grass, tracks, water, ice, sand and wood,
