@@ -111,16 +111,9 @@ def flag(spec):
 
 # ------------------------------------------------------------------ backgrounds
 def stadium(rgb, top=0, h=96, rows=True):
-    d = ImageDraw.Draw(rgb)
-    for y in range(top, top + h):
-        k = (y - top) / h
-        d.line([0, y, 319, y], fill=(int(30 + 30 * k), int(40 + 40 * k), int(80 + 60 * k)))
-    for y in range(top + 6, top + h, 4):                      # rows of the stands
-        d.line([0, y, 319, y], fill=(20, 25, 45))
-    for i in range(3200 if rows else 0):                    # the crowd
-        x = random.randrange(320); y = random.randrange(top + 4, top + h - 2)
-        col = random.choice([(230, 60, 50), (240, 240, 240), (250, 200, 40), (60, 120, 220), (240, 140, 40), (40, 160, 80), (230, 190, 150)])
-        d.point((x, y), fill=col)
+    """the stands (painted like the events' stands: a roof, lights, rows of people)"""
+    a = g.stands_rgb(320, h, seed=97 + top, roof=rows)
+    rgb.paste(Image.fromarray(a.astype('uint8'), 'RGB'), (0, top))
 
 def title_bg():
     rgb = Image.new('RGB', (320, 256)); d = ImageDraw.Draw(rgb)

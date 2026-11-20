@@ -7,6 +7,12 @@ Everything that is built in between is collected here, so the next itch release 
 on request. The full game files (V0.1 ADFs, hard drive zip, WHDLoad) are NOT uploaded yet (Mark's wish).
 
 ## Versions waiting to be published
+### V0.4 - TEST VERSION - 20 November 2026
+- New Amiga look for every screen: real stadium stands (roof, floodlights, rows of spectators,
+  aisles) instead of coloured dots, sponsor boards, dithered grass, tracks, water, ice, sand and wood,
+  copper colour gradients in the top bars, shaded athletes with eyes
+- New screenshots; the print kit PDFs remade with them (re-upload them on the release day)
+
 ### V0.3 - TEST VERSION - 20 November 2026
 - National anthems: at the medal ceremony you hear the anthem of the country that wins gold
   ("THE ANTHEM OF ..."), played once and quietly like the rest of the music. 17 of the 20 countries
@@ -36,7 +42,7 @@ on request. The full game files (V0.1 ADFs, hard drive zip, WHDLoad) are NOT upl
 - 2 disks, hard drive zip, WHDLoad
 
 ## To do on the release day for the full game
-1. Upload `StronkiesOlympics_V0.3_Disk1.adf` + `_Disk2.adf` + `_Disk3.adf` (or a zip with all three),
-   `StronkiesOlympics_V0.3_harddrive.zip` and `whdload/StronkiesOlympics_V0.3_WHDLoad.lha` (paid, the page price).
+1. Upload `StronkiesOlympics_V0.4_Disk1.adf` + `_Disk2.adf` + `_Disk3.adf` (or a zip with all three),
+   `StronkiesOlympics_V0.4_harddrive.zip` and `whdload/StronkiesOlympics_V0.4_WHDLoad.lha` (paid, the page price).
    Keep the demo as the one free file. Do not name the GitHub repo anywhere (page, devlog, readmes).
 2. Add the print kit when there is one, update the description, post a devlog and the announcement.

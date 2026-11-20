@@ -16,14 +16,8 @@ im = Image.new('RGB', (W, H)); d = ImageDraw.Draw(im)
 for y in range(H):
     k = y / 255
     d.line([0, y, W - 1, y], fill=(int(15 + 50 * k), int(25 + 70 * k), int(70 + 110 * k)))
-# the stands with the crowd
-for y in range(118, 178):
-    k = (y - 118) / 60
-    d.line([0, y, W - 1, y], fill=(int(30 + 30 * k), int(40 + 40 * k), int(80 + 50 * k)))
-for y in range(122, 178, 4): d.line([0, y, W - 1, y], fill=(20, 25, 45))
-cols = [(230, 60, 50), (240, 240, 240), (250, 200, 40), (60, 120, 220), (240, 140, 40), (40, 160, 80), (230, 190, 150)]
-for i in range(3000):
-    d.point((random.randrange(W), random.randrange(120, 177)), fill=random.choice(cols))
+# the stands with the crowd (painted like the stands in the game)
+im.paste(Image.fromarray(g.stands_rgb(W, 60, seed=99, roof=True).astype('uint8'), 'RGB'), (0, 118))
 d.rectangle([0, 178, W - 1, H - 1], fill=(50, 140, 60))
 for y in range(184, H, 14): d.rectangle([0, y, W - 1, y + 6], fill=(70, 170, 80))
 # a running track

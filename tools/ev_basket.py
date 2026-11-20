@@ -21,17 +21,12 @@ SPOTS = [52, 80, 108, 80, 52]   # where the player stands (left edge of the 32 w
 def background():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 319, 23], fill=BG); d.line([0, 23, 319, 23], fill=YELLOW)
-    for y in range(24, 120):                                  # stands
-        d.line([0, y, 319, y], fill=STAND if (y // 5) % 2 else WALL)
-    for i in range(3000):
-        d.point((random.randrange(320), random.randrange(25, 118)), fill=random.choice([CR1, CR2, CR3, CR4, CR5, WHITE, YELLOW, RED]))
+    g.stands(im, 24, 118, PAL, seed=93, light=0.85)            # the arena: stands under the roof
     d.rectangle([0, 118, 319, 150], fill=WALL2)
     d.rectangle([0, 118, 319, 121], fill=GREY)
-    g.text8(im, 56, 130, 'STRONKIE SOFT', YELLOW); g.text8(im, 176, 130, 'AMIGA 500', WHITE)
-    # the floor: planks in perspective
-    for y in range(150, 240):
-        k = (y - 150) / 90
-        d.line([0, y, 319, y], fill=FL1 if (y // 3) % 2 else FL2)
+    g.ad_boards(im, 130, PAL, ['3 POINT SHOOT-OUT'] + g.SPONSORS, seed=2)
+    # the floor: polished planks in perspective
+    g.ground(im, (0, 150, 320, 240), PAL, [(0, (150, 100, 50)), (0.5, (200, 150, 90)), (1, (225, 180, 115))], [FL1, FL2, FL3], noise=6)
     for x in range(-200, 330, 18):
         d.line([x, 240, x + 60, 150], fill=FL3)
     d.line([0, 150, 319, 150], fill=FL3)
@@ -48,6 +43,7 @@ def background():
     # the meter frame (left) and the bottom bar
     d.rectangle([14, 58, 33, 162], fill=BLACK, outline=WHITE)
     d.rectangle([0, 240, 319, 255], fill=BG); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def rim_front():

@@ -20,18 +20,15 @@ START_X, FINISH_X = 16, 296
 LANE_C, LANE_P = 168, 214            # feet: the rival (back), you (front)
 NH = 10
 
+g.DYNAMIC = set(range(18, 25))          # (changed while the event runs: not in the scenery)
+
 def background():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 319, 23], fill=DARK); d.line([0, 23, 319, 23], fill=YELLOW)
-    for y in range(24, 112):
-        d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for i in range(3600):
-        d.point((random.randrange(320), random.randrange(25, 111)), fill=random.choice([CR1, CR2, CR3, WHITE, YELLOW, RED]))
-    d.rectangle([0, 112, 319, 121], fill=GREY)
-    g.text8(im, 24, 113, 'STRONKIE SOFT', RED); g.text8(im, 176, 113, '100M' if not HURDLES else '110M HURDLES', BLACK)
-    d.rectangle([0, 122, 319, 132], fill=GRASS)
-    d.rectangle([0, 133, 319, 232], fill=TRACK)
-    for y in range(133, 233, 3): d.line([0, y, 319, y], fill=TRACK2 if y % 2 else TRACK)
+    g.stands(im, 24, 112, PAL, seed=11)
+    g.ad_boards(im, 112, PAL, ['100M' if not HURDLES else '110M HURDLES'] + g.SPONSORS, seed=2)
+    g.ground(im, (0, 122, 320, 133), PAL, [(0, (40, 120, 50)), (1, (70, 170, 70))], [GRASS, GRASS2, SHADE], stripes=(20, (14, 18, 8)))
+    g.ground(im, (0, 133, 320, 233), PAL, [(0, (160, 70, 45)), (0.5, (185, 85, 55)), (1, (205, 105, 70))], [TRACK, TRACK2, RED], noise=7)
     for y in (134, 176, 222): d.line([0, y, 319, y], fill=LANE)
     d.rectangle([0, 233, 319, 239], fill=GRASS2)
     for x in range(START_X + 28, FINISH_X, 28):                   # every 10 metres
@@ -45,6 +42,7 @@ def background():
         d.rectangle([x, y, x + 2, y + 1], fill=WHITE); d.rectangle([x, y + 2, x + 2, y + 3], fill=BLACK)
     d.rectangle([FINISH_X - 2, 96, FINISH_X + 1, 134], fill=GREY)
     d.rectangle([0, 240, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def runner(kit, woman):

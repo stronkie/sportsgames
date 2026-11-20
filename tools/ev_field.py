@@ -25,23 +25,19 @@ PX_M = dict(longjump=14, javelin=3, tp=6)[KIND]        # field scale: pixels per
 FIELD0 = 8                          # javelin/tp: 0 m on the field screen
 FIELD_Y = 200                       # the ground on the field screen
 
-def stands(d, top=24, bottom=112):
-    for y in range(top, bottom): d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for i in range((bottom - top) * 40):
-        d.point((random.randrange(320), random.randrange(top + 1, bottom - 1)), fill=random.choice([CR1, CR2, CR3, WHITE, YELLOW, RED]))
+def stands(im, top=24, bottom=112):
+    g.stands(im, top, bottom, PAL, seed=41 + top)
 
 def frame_bars(im, d, title):
     d.rectangle([0, 0, 319, 23], fill=DARK); d.line([0, 23, 319, 23], fill=YELLOW)
-    d.rectangle([0, 112, 319, 121], fill=GREY)
-    g.text8(im, 16, 113, 'STRONKIE SOFT', RED); g.text8(im, 136, 113, title, BLACK)
+    g.ad_boards(im, 112, PAL, [title] + g.SPONSORS, seed=5)
     d.rectangle([0, 239, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
 
 def runup_bg():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
-    stands(d); frame_bars(im, d, dict(longjump='LONG JUMP', javelin='JAVELIN', tp='TOILET PAPER')[KIND])
-    for y in range(122, 239): d.line([0, y, 319, y], fill=GRASS if (y // 6) % 2 else GRASS2)
-    d.rectangle([0, 186, 319 if KIND != 'longjump' else BOARD, 216], fill=TRACK)
-    for y in range(186, 217, 3): d.line([0, y, 319 if KIND != 'longjump' else BOARD, y], fill=TRACK2)
+    stands(im); frame_bars(im, d, dict(longjump='LONG JUMP', javelin='JAVELIN', tp='TOILET PAPER')[KIND])
+    g.ground(im, (0, 122, 320, 239), PAL, [(0, (40, 110, 45)), (1, (80, 175, 75))], [GRASS, GRASS2, GRASS3], stripes=(24, (14, 18, 8)))
+    g.ground(im, (0, 186, 320 if KIND != 'longjump' else BOARD + 1, 217), PAL, [(0, (165, 75, 50)), (1, (205, 105, 70))], [TRACK, TRACK2, RED], noise=7)
     d.line([0, 186, 319, 186], fill=WHITE); d.line([0, 216, 319, 216], fill=WHITE)
     if KIND == 'longjump':
         d.rectangle([BOARD - 4, 186, BOARD, 216], fill=WHITE); d.line([BOARD - 4, 186, BOARD - 4, 216], fill=BLACK)
@@ -54,21 +50,22 @@ def runup_bg():
     else:
         d.line([BOARD, 186, BOARD + 6, 216], fill=WHITE); d.line([BOARD + 1, 186, BOARD + 7, 216], fill=WHITE)
         g.text8(im, BOARD + 12, 222, 'FOUL LINE', WHITE)
+    g.topbar_to_copper(im)
     return im
 
 def field_bg():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
-    stands(d, 24, 80); frame_bars(im, d, 'JAVELIN' if KIND == 'javelin' else 'TOILET PAPER')
-    d.rectangle([0, 80, 319, 111], fill=SKY)
-    d.rectangle([0, 112, 319, 121], fill=GREY)
-    g.text8(im, 16, 113, 'STRONKIE SOFT', RED)
-    for y in range(122, 239): d.line([0, y, 319, y], fill=GRASS if (y // 6) % 2 else GRASS3)
+    frame_bars(im, d, 'JAVELIN' if KIND == 'javelin' else 'TOILET PAPER')
+    g.ground(im, (0, 24, 320, 62), PAL, [(0, (60, 110, 200)), (1, (150, 200, 250))], [SKY, WHITE, GREY], spread=40)
+    g.paint(im, 0, 62, g.stands_rgb(320, 50, seed=47, roof=False, light=0.9), PAL, None, 20)
+    g.ground(im, (0, 122, 320, 239), PAL, [(0, (40, 110, 45)), (1, (80, 175, 75))], [GRASS, GRASS2, GRASS3], stripes=(24, (14, 18, 8)))
     step = 10 if KIND == 'javelin' else 5
     for m in range(0, 101 if KIND == 'javelin' else 51, step):
         x = FIELD0 + m * PX_M
         d.line([x, 150, x - 2, 234], fill=WHITE)
         if m: g.text8(im, x - (8 if m < 100 else 12), 140, str(m), WHITE)
     d.rectangle([0, 150, FIELD0, 234], fill=TRACK)
+    g.topbar_to_copper(im)
     return im
 
 def thrower(kit, woman):

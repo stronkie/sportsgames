@@ -60,6 +60,7 @@ def background():
     # the pin diagram box (right) and the bottom bar
     d.rectangle([256, 40, 319, 92], fill=BLACK, outline=GREY)
     d.rectangle([0, 240, 319, 255], fill=BG); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def pin(fallen=False):

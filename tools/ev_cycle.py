@@ -17,20 +17,23 @@ RIVAL = dict(hair=18, skin=19, skind=20, shirt=21, shirtd=22, shorts=23, shoes=2
 START_X, FINISH_X = 24, 300
 LANE_C, LANE_P = 172, 216
 
+g.DYNAMIC = set(range(18, 25))          # (changed while the event runs: not in the scenery)
+
 def background():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 319, 23], fill=DARK); d.line([0, 23, 319, 23], fill=YELLOW)
-    for y in range(24, 104): d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for i in range(2600): d.point((random.randrange(320), random.randrange(25, 103)), fill=random.choice([CR1, CR2, CR3, WHITE, YELLOW]))
-    d.rectangle([0, 104, 319, 121], fill=BLUE); g.text8(im, 24, 109, 'STRONKIE SOFT', WHITE); g.text8(im, 176, 109, '500M', YELLOW)
-    for y in range(122, 240):                                     # the banked wooden track
-        d.line([0, y, 319, y], fill=[WOOD, WOOD2, WOOD3][(y // 3) % 3] if y % 3 else WOOD3)
+    g.stands(im, 24, 104, PAL, seed=31)
+    d.rectangle([0, 104, 319, 121], fill=BLUE)
+    g.ad_boards(im, 108, PAL, ['500M SPRINT'] + g.SPONSORS, seed=4, x1=224)
+    g.ground(im, (0, 122, 320, 240), PAL, [(0, (110, 60, 30)), (0.5, (170, 100, 50)), (1, (200, 135, 80))], [WOOD, WOOD2, WOOD3], noise=8)   # the banked wooden track
+    for y in range(124, 240, 6): d.line([0, y, 319, y], fill=WOOD3)
     for x in range(-40, 330, 37): d.line([x, 122, x + 6, 239], fill=WOOD3)
     d.rectangle([0, 122, 319, 127], fill=BLUE)
     d.line([0, 150, 319, 150], fill=RED); d.line([0, 194, 319, 194], fill=BLUE)
     d.rectangle([START_X - 1, 150, START_X, 236], fill=WHITE)
     for y in range(150, 236, 4): d.rectangle([FINISH_X - 2, y, FINISH_X + 1, y + 1], fill=BLACK); d.rectangle([FINISH_X - 2, y + 2, FINISH_X + 1, y + 3], fill=WHITE)
     d.rectangle([0, 239, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def ik(hip, foot, l1=9.5, l2=10.0):

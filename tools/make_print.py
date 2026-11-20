@@ -27,7 +27,7 @@ GEN = os.path.join(ROOT, 'build', 'gen')
 OUT = os.path.join(ROOT, 'print')
 TMP = os.path.join(ROOT, 'build', 'print')
 os.makedirs(OUT, exist_ok=True); os.makedirs(TMP, exist_ok=True)
-VER = os.environ.get('VER', '0.3')
+VER = os.environ.get('VER', '0.4')
 F = '/usr/share/fonts/truetype/dejavu/'
 for n, f in (('Sans', 'DejaVuSans.ttf'), ('SansB', 'DejaVuSans-Bold.ttf'), ('SansC', 'DejaVuSansCondensed.ttf'),
              ('SansCB', 'DejaVuSansCondensed-Bold.ttf'), ('Serif', 'DejaVuSerif.ttf'), ('SerifB', 'DejaVuSerif-Bold.ttf'),
@@ -529,7 +529,7 @@ def label(c, x, y, disk, bw):
     c.setFillColorRGB(*(RED if not bw else ink)); c.setFont('SansB', 11)
     c.drawString(x + 4 * mm, yy, 'DEMO' if disk == 'DEMO' else 'DISK %d' % disk)
     c.setFillColorRGB(*ink); c.setFont('Sans', 6.2)
-    c.drawRightString(x + LW - 4 * mm, yy, 'AMIGA 500  -  V%s' % ('0.3 DEMO' if disk == 'DEMO' else VER))
+    c.drawRightString(x + LW - 4 * mm, yy, 'AMIGA 500  -  V%s' % ('DEMO' if disk == 'DEMO' else VER))
     yy -= 5 * mm
     if disk == 'DEMO': lines = ['Opening ceremony + Soccer (free demo)', 'Bootable in DF0:', 'The full game: 18 events on 3 disks']
     elif disk == 1: lines = ['BOOT DISK: game, ceremonies, records', 'Soccer, Basketball, Volleyball,', 'Bowling, Surfing',

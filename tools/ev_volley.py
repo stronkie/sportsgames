@@ -26,7 +26,9 @@ def gradient():
         r, gg, b = int(3 + 6 * k), int(6 + 7 * k), int(12 + 3 * k)
         items.append((y, (min(15, r) << 8) | (min(15, gg) << 4) | min(15, b)))
     items.append((206, 0x112))
-    return items
+    return g.with_topbar(items)
+
+g.DYNAMIC = set(range(18, 25))          # (changed while the event runs: not in the scenery)
 
 def background():
     im = Image.new('P', (320, 256), SKY); d = ImageDraw.Draw(im)
@@ -36,14 +38,12 @@ def background():
     for (x, y) in ((40, 44), (120, 58), (190, 38)):
         for i in range(4): d.ellipse([x + i * 10, y - (i % 2) * 4, x + i * 10 + 18, y + 10 - (i % 2) * 4], fill=WHITE)
     # the sea
-    for y in range(112, 150):
-        d.line([0, y, 319, y], fill=SEA if (y // 3) % 3 else SEA2)
+    g.ground(im, (0, 112, 320, 150), PAL, [(0, (20, 80, 150)), (1, (60, 150, 210))], [SEA, SEA2, BLUE], noise=8)
     for i in range(80):
         x = random.randrange(320); y = random.randrange(114, 148); d.line([x, y, x + 5, y], fill=WHITE)
     # the sand
-    for y in range(150, 240):
-        d.line([0, y, 319, y], fill=SAND)
-    for i in range(1400):
+    g.ground(im, (0, 150, 320, 240), PAL, [(0, (205, 175, 120)), (1, (240, 215, 160))], [SAND, SAND2, SAND3, SANDD], noise=10)
+    for i in range(400):
         d.point((random.randrange(320), random.randrange(150, 240)), fill=random.choice([SAND2, SAND3, SANDD]))
     d.line([0, GROUND + 2, 319, GROUND + 2], fill=SAND3)
     # a palm tree at the left and an umbrella at the right
@@ -62,6 +62,7 @@ def background():
     for y in range(NET_TOP, NET_TOP + 40, 4): d.line([NET_X - 3, y, NET_X + 2, y], fill=WHITE)
     d.rectangle([NET_X - 4, NET_TOP - 1, NET_X + 3, NET_TOP + 1], fill=WHITE)
     d.rectangle([0, 240, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def frames(woman, kit=None, flip=False):

@@ -19,24 +19,20 @@ KEEPER = dict(hair=KHAIR, skin=KSK, skind=KSKD, shirt=KS, shirtd=KSD, shorts=KSH
 GOAL_L, GOAL_R, BAR_Y, LINE_Y = 96, 224, 76, 132
 SPOT = (160, 198)
 
+g.DYNAMIC = {KS, KSD}          # (changed while the event runs: not in the scenery)
+
 def background():
     im = Image.new('P', (320, 256), STRIP); d = ImageDraw.Draw(im)
-    for y in range(24, 62):                                  # the stands
-        d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for i in range(2600):
-        x = random.randrange(320); y = random.randrange(25, 61)
-        d.point((x, y), fill=random.choice([CR1, CR2, CR3, CR4, CR5, CR6, WHITE, YELLOW]))
-    # advertising boards
-    cols = [(RED, WHITE, 'STRONKIE SOFT'), (CR6, YELLOW, 'AMIGA 500'), (YELLOW, BLACK, 'GOTEK'), (WHITE, RED, 'C64')]
-    x = 0; i = 0
-    while x < 320:
-        bg, fg, t = cols[i % 4]; w = len(t) * 8 + 16
-        d.rectangle([x, 62, x + w - 1, 71], fill=bg); g.text8(im, x + 8, 63, t, fg); x += w; i += 1
-    # the grass in stripes, wider closer to us
+    g.stands(im, 24, 62, PAL, seed=91)                        # the stands
+    g.ad_boards(im, 62, PAL, ['PENALTIES'] + g.SPONSORS, seed=1)   # advertising boards
+    # the grass in stripes, wider closer to us, darker far away
+    a = g.vgrad(320, 168, [(0, (35, 110, 40)), (1, (75, 175, 70))])
     y = 72; k = 0
     while y < 240:
         h = 6 + (y - 72) // 10
-        d.rectangle([0, y, 319, min(239, y + h - 1)], fill=GL if k % 2 else GM); y += h; k += 1
+        if k % 2: a[y - 72:min(168, y - 72 + h)] += (12, 18, 8)
+        y += h; k += 1
+    g.paint(im, 0, 72, np.clip(a, 0, 255), PAL, [GD, GL, GM], 22)
     # pitch lines
     d.line([0, LINE_Y, 319, LINE_Y], fill=WHITE)
     d.line([64, 150, 256, 150], fill=WHITE); d.line([64, 150, 78, LINE_Y], fill=WHITE); d.line([256, 150, 242, LINE_Y], fill=WHITE)
@@ -58,6 +54,7 @@ def background():
     d.rectangle([STRIP, 240, 319, 255], fill=STRIP)
     d.rectangle([0, 240, 319, 255], fill=STRIP); d.line([0, 240, 319, 240], fill=YELLOW)
     d.rectangle([0, 0, 319, 23], fill=STRIP); d.line([0, 23, 319, 23], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def keeper_frames():

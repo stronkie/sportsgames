@@ -24,6 +24,8 @@ entry:	movem.l	d1-d7/a0-a6,-(sp)
 	dbf	d0,.cl
 	lea	pal_a,a0
 	jsr	K_PAL(a5)
+	lea	grad_ev,a0		; (the copper: the top bar)
+	jsr	K_GRAD(a5)
 	lea	bg_rle,a0
 	jsr	K_SETBG(a5)
 	bsr	draw_board

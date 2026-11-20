@@ -21,7 +21,7 @@ def gradient():
         k = i / 12
         items.append((y, (int(4 + 7 * k) << 8) | (int(7 + 6 * k) << 4) | int(12 + 3 * k)))
     items.append((200, 0x112))
-    return items
+    return g.with_topbar(items)
 
 def background():
     im = Image.new('P', (320, 256), SKY); d = ImageDraw.Draw(im)
@@ -31,10 +31,9 @@ def background():
     # far sea behind the wave
     d.rectangle([0, 76, 319, 90], fill=W2)
     # the wave face: bands, lighter near the top; the lip line bends up to the curl
-    for y in range(LIP_Y - 10, TROUGH_Y + 2):
-        k = (y - LIP_Y) / (TROUGH_Y - LIP_Y)
-        col = [W5, W4, W3, W6, W2, W1][min(5, max(0, int(k * 6)))]
-        d.line([0, y, 319, y], fill=col)
+    g.ground(im, (0, LIP_Y - 10, 320, TROUGH_Y + 2), PAL,          # the wave face: dithered, lighter near the top
+             [(0, g.rgb12(PAL[W5])), (0.2, g.rgb12(PAL[W4])), (0.4, g.rgb12(PAL[W3])), (0.6, g.rgb12(PAL[W6])),
+              (0.8, g.rgb12(PAL[W2])), (1, g.rgb12(PAL[W1]))], [W1, W2, W3, W4, W5, W6], noise=5, spread=30)
     for x in range(320):                                       # the lip
         lip = LIP_Y - 6 + 6 * math.exp(-(x - CURL_X) / 60) if x > CURL_X else LIP_Y - 12
         d.line([x, 76, x, int(lip)], fill=W2)
@@ -55,6 +54,7 @@ def background():
     for i in range(400):
         d.point((random.randrange(320), random.randrange(TROUGH_Y - 4, 240)), fill=random.choice([WHITE, W5, FOAM2]))
     d.rectangle([0, 240, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def surfer(woman):

@@ -17,21 +17,24 @@ RIVAL = dict(hair=18, skin=19, skind=20, shirt=21, shirtd=22, shorts=23, shoes=2
 START_X, FINISH_X = 24, 300
 LANE_C, LANE_P = 172, 216
 
+g.DYNAMIC = set(range(18, 25))          # (changed while the event runs: not in the scenery)
+
 def background():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 319, 23], fill=DARK); d.line([0, 23, 319, 23], fill=YELLOW)
-    for y in range(24, 110): d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for i in range(3000): d.point((random.randrange(320), random.randrange(25, 109)), fill=random.choice([CR1, CR2, CR3, WHITE, YELLOW]))
-    d.rectangle([0, 110, 319, 124], fill=TILE); g.text8(im, 24, 113, 'STRONKIE SOFT', RED); g.text8(im, 152, 113, '50M', BLACK)
-    d.rectangle([0, 125, 319, 239], fill=W2)
-    for y in range(125, 238, 4):
-        for x in range(random.randrange(8), 320, 18): d.line([x, y, x + 6, y], fill=random.choice([W1, W3, W2]))
+    g.stands(im, 24, 110, PAL, seed=21)
+    d.rectangle([0, 110, 319, 124], fill=TILE)
+    g.ad_boards(im, 112, PAL, ['50M FREESTYLE'] + g.SPONSORS, seed=3, x1=176)
+    g.ground(im, (0, 125, 320, 240), PAL, [(0, (20, 110, 170)), (0.5, (40, 150, 210)), (1, (70, 190, 235))], [W1, W2, W3, FOAM], noise=10, spread=34)
+    for i in range(140):                                          # light on the water
+        x, y = random.randrange(320), random.randrange(126, 238); d.line([x, y, x + random.randrange(2, 6), y], fill=random.choice([W3, FOAM]))
     for y in (128, 184, 232):                                  # lane ropes
         for x in range(0, 320, 6): d.rectangle([x, y, x + 3, y + 2], fill=RED if (x // 6) % 4 == 0 else WHITE)
     d.rectangle([0, 125, START_X - 6, 238], fill=TILE)            # the walls and the blocks
     d.rectangle([FINISH_X + 2, 125, 319, 238], fill=TILE)
     for y in (LANE_C - 10, LANE_P - 10): d.rectangle([START_X - 14, y - 2, START_X - 2, y + 4], fill=WHITE, outline=BLACK)
     d.rectangle([0, 239, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def swimmer(kit, woman, phase=None, block=False, dive=False):

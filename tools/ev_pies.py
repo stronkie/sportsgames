@@ -25,16 +25,18 @@ def clown(d, x, y, up):
 def background():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 319, 23], fill=DARK); d.line([0, 23, 319, 23], fill=YELLOW)
-    for y in range(24, 40): d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for y in range(232, 240): d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for y in range(40, 232):
-        d.line([0, y, 319, y], fill=SAND)
-    for i in range(1800): d.point((random.randrange(320), random.randrange(41, 231)), fill=random.choice([SAND2, SAND3]))
-    d.rectangle([0, 40, ZL + 7, 231], fill=GREEN); d.rectangle([ZR + 9, 40, 319, 231], fill=GREEN)
+    g.paint(im, 0, 24, g.stands_rgb(320, 16, seed=81, roof=False), PAL, None, 20)
+    g.paint(im, 0, 232, g.stands_rgb(320, 8, seed=82, roof=False), PAL, None, 20)
+    g.ground(im, (0, 40, 320, 232), PAL, [(0, (200, 170, 110)), (0.5, (225, 195, 130)), (1, (205, 175, 115))], [SAND, SAND2, SAND3], noise=9)
+    g.ground(im, (0, 40, ZL + 8, 232), PAL, [(0, (40, 140, 50)), (1, (70, 190, 80))], [GREEN, GREEN2], stripes=(6, (10, 14, 6)))
+    g.ground(im, (ZR + 9, 40, 320, 232), PAL, [(0, (40, 140, 50)), (1, (70, 190, 80))], [GREEN, GREEN2], stripes=(6, (10, 14, 6)))
+    for r in range(70, 4, -6):                                      # the circus ring in the middle
+        pass
     for y in range(44, 231, 12): d.line([ZL + 7, y, ZL + 7, y + 6], fill=WHITE); d.line([ZR + 9, y, ZR + 9, y + 6], fill=WHITE)
     g.text8(im, 120, 128, 'PIE DODGE', SAND3); g.text8(im, 112, 140, 'STRONKIE SOFT', SAND3)
     for x in range(44, 290, 24): clown(d, x, 32, False); clown(d, x + 12, 236, True)
     d.rectangle([0, 241, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def walker(kit, k):

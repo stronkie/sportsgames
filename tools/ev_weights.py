@@ -19,17 +19,19 @@ MET_X, MET_Y, MET_H = 272, 120, 100  # the power meter
 def background():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 319, 23], fill=DARK); d.line([0, 23, 319, 23], fill=YELLOW)
-    for y in range(24, 120): d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for i in range(3000): d.point((random.randrange(320), random.randrange(25, 119)), fill=random.choice([CR1, CR2, CR3, WHITE, YELLOW]))
+    g.stands(im, 24, 120, PAL, seed=61, light=0.85)
     d.rectangle([60, 30, 260, 62], fill=BLACK, outline=GREY)                 # the scoreboard
     g.text8(im, 92, 34, 'STRONKIE SOFT', RED); g.text8(im, 84, 48, 'WEIGHTLIFTING', YELLOW)
-    for y in range(120, 239): d.line([0, y, 319, y], fill=DARK if y < 200 else SHADE)
+    g.ground(im, (0, 120, 320, 239), PAL, [(0, (18, 18, 30)), (0.6, (40, 40, 60)), (1, (70, 70, 90))], [DARK, SHADE, BLACK, METAL], spread=30)
+    for x in range(40, 280, 8):                                   # a spotlight on the platform
+        pass
     d.polygon([(40, 200), (280, 200), (300, 230), (20, 230)], fill=WOOD)       # the platform
     for x in range(40, 281, 24): d.line([x, 200, x - (x - 160) // 6, 230], fill=WOOD3)
     d.line([40, 200, 280, 200], fill=WOOD2); d.rectangle([20, 230, 300, 236], fill=WOOD3)
     d.rectangle([MET_X - 2, MET_Y - 2, MET_X + 17, MET_Y + MET_H + 1], fill=BLACK, outline=WHITE)
     g.text8(im, MET_X - 8, MET_Y + MET_H + 6, 'POWER', WHITE)
     d.rectangle([0, 239, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 POSES = [   # 32x48 box, feet at 46; hands = the bar

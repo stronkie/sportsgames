@@ -23,7 +23,7 @@ def gradient():
         k = i / 16
         items.append((y, (int(3 + 8 * k) << 8) | (int(4 + 7 * k) << 4) | int(10 + 5 * k)))
     items.append((210, 0x112))
-    return items
+    return g.with_topbar(items)
 
 def path():
     """the ramp from the left lip to the right lip, one point per pixel of length: x, y, slope"""
@@ -81,6 +81,7 @@ def background():
         for x in range(320):
             if a[y, x]: px[x, y + 186] = PINK if (x // 4 + y // 3) % 3 else CYAN
     d.rectangle([0, 240, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im, p
 
 def skater(woman):

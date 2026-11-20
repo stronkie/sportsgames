@@ -9,6 +9,8 @@
 ev_start:
 	move.l	a1,-(sp)
 	jsr	K_PAL(a5)
+	lea	grad_ev,a0		; (the copper: the top bar)
+	jsr	K_GRAD(a5)
 	move.l	(sp)+,a0
 	jsr	K_SETBG(a5)
 	rts

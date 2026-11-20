@@ -34,13 +34,12 @@ def background():
     im = Image.new('P', (320, 256), SKY); d = ImageDraw.Draw(im)
     # stars (only seen at night: colour 2 is grey-white at night too)
     # the stands: a big bowl
-    for y in range(48, 160):
-        k = (y - 48) / 112
-        d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    d.polygon([(0, 48), (40, 40), (280, 40), (319, 48)], fill=ST2)
-    for i in range(4200):
-        x = random.randrange(320); y = random.randrange(42, 158)
-        d.point((x, y), fill=random.choice([CR1, CR2, CR3, WHITE, YELLOW, KA, KB]))
+    a = g.stands_rgb(320, 120, seed=95, roof=False)                # the stands: a big bowl
+    mask = np.zeros((120, 320), bool)
+    for x in range(320):
+        top = int(8 - 8 * (1 - abs(x - 160) / 160) ** 0.5)          # (the rim of the bowl curves up)
+        mask[top:, x] = True
+    g.paint(im, 0, 40, a, PAL_DAY, [BLACK, WHITE, YELLOW, RED, ST1, ST2, CR1, CR2, CR3, KA, KB, KC, KD, SKIN, HAIR], 20, mask)
     # floodlight masts
     for x in (12, 150):
         d.rectangle([x, 8, x + 3, 48], fill=TOWER2); d.rectangle([x - 7, 4, x + 10, 10], fill=WHITE)

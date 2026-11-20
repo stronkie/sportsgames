@@ -19,12 +19,10 @@ POW_X, POW_Y = 128, 113
 def background():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 319, 23], fill=DARK); d.line([0, 23, 319, 23], fill=YELLOW)
-    for y in range(24, 112): d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for i in range(3000): d.point((random.randrange(320), random.randrange(25, 111)), fill=random.choice([CR1, CR2, CR3, WHITE, YELLOW]))
+    g.stands(im, 24, 112, PAL, seed=71)
     d.rectangle([0, 112, 319, 121], fill=GREY); g.text8(im, 8, 113, 'STRONKIE', RED); g.text8(im, 80, 113, 'POWER', BLACK)
     g.text8(im, 240, 113, 'CURLING', BLACK)
-    for y in range(122, 238): d.line([0, y, 319, y], fill=ICE)
-    for i in range(700): d.point((random.randrange(320), random.randrange(123, 237)), fill=random.choice([ICE2, ICE3, WHITE]))
+    g.ground(im, (0, 122, 320, 238), PAL, [(0, (190, 215, 235)), (1, (235, 245, 255))], [ICE, ICE2, ICE3, WHITE], noise=6, spread=24)
     d.rectangle([0, 122, 319, 123], fill=BLUE); d.rectangle([0, 236, 319, 237], fill=BLUE)
     for r, c in ((40, BLUE), (30, WHITE), (20, RED2), (10, WHITE)):
         d.ellipse([HX - r, HY - r, HX + r, HY + r], fill=c, outline=ICE3)
@@ -32,6 +30,7 @@ def background():
     d.line([HX, 124, HX, 235], fill=ICE3); d.line([0, HY, 319, HY], fill=ICE2)
     d.line([X_START + 40, 124, X_START + 40, 235], fill=RED2); d.line([HX - 70, 124, HX - 70, 235], fill=RED2)   # hog lines
     d.rectangle([0, 238, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def penguin(k):

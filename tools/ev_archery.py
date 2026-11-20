@@ -18,11 +18,12 @@ CX, CY, RING = 160, 132, 7          # the target: centre, ring width (10 rings)
 def background():
     im = Image.new('P', (320, 256), BG); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, 319, 23], fill=DARK); d.line([0, 23, 319, 23], fill=YELLOW)
-    for y in range(24, 64): d.line([0, y, 319, y], fill=SKY2 if y < 44 else SKY)
-    for y in range(64, 92): d.line([0, y, 319, y], fill=ST1 if (y // 4) % 2 else ST2)
-    for i in range(900): d.point((random.randrange(320), random.randrange(65, 91)), fill=random.choice([CR1, CR2, CR3, WHITE, YELLOW]))
-    d.rectangle([0, 92, 319, 101], fill=GREY); g.text8(im, 8, 93, 'STRONKIE', RED); g.text8(im, 256, 93, 'ARCHERY', BLACK)
-    for y in range(102, 239): d.line([0, y, 319, y], fill=GRASS if (y // 8) % 2 else GRASS2)
+    g.ground(im, (0, 24, 320, 64), PAL, [(0, (90, 150, 230)), (1, (170, 215, 250))], [SKY, SKY2, WHITE], spread=40)
+    for cx, cy in ((60, 36), (210, 30), (290, 44)):                 # clouds
+        for k in range(5): d.ellipse([cx + k * 6 - 10, cy - 4 + (k % 2) * 2, cx + k * 6 + 6, cy + 5], fill=WHITE)
+    g.paint(im, 0, 64, g.stands_rgb(320, 28, seed=51, roof=False), PAL, None, 20)
+    g.ad_boards(im, 92, PAL, ['ARCHERY'] + g.SPONSORS, seed=6)
+    g.ground(im, (0, 102, 320, 239), PAL, [(0, (40, 110, 45)), (1, (85, 180, 80))], [GRASS, GRASS2, GRASS3], stripes=(16, (12, 16, 6)))
     d.polygon([(CX - 50, 230), (CX - 30, CY), (CX + 30, CY), (CX + 50, 230)], fill=WOOD2)       # the stand
     d.line([CX - 50, 230, CX - 30, CY], fill=WOOD, width=4); d.line([CX + 50, 230, CX + 30, CY], fill=WOOD, width=4)
     d.ellipse([CX - 76, CY - 76, CX + 76, CY + 76], fill=STRAW, outline=WOOD2)
@@ -32,6 +33,7 @@ def background():
         d.ellipse([CX - r, CY - r, CX + r, CY + r], fill=cols[k], outline=BLACK if cols[k] != BLACK else WHITE)
     d.line([CX - 1, CY, CX + 1, CY], fill=BLACK); d.line([CX, CY - 1, CX, CY + 1], fill=BLACK)
     d.rectangle([0, 239, 319, 255], fill=DARK); d.line([0, 240, 319, 240], fill=YELLOW)
+    g.topbar_to_copper(im)
     return im
 
 def sight():
