@@ -21,7 +21,7 @@ the crunched demo, the remade print kit (the V0.4 files are hidden on itch). Dev
 https://stronkie.itch.io/stronkies-olympics/devlog/1795587/one-disk-stronkies-olympics-v05-the-whole-game-crunched-onto-one-floppy
 
 ## Published versions
-### V0.6 - TEST VERSION - 21 November 2026 (bug fix, published the same day on request)
+### V0.6 - TEST VERSION - 21 November 2026 (bug fix; files on itch the same day, V0.5 files hidden)
 - FIX: the game crashed (Software Failure 8000 0003) when a Soccer match ended - in the full game
   and in the free demo, since V0.1. The event kept its stack pointer among its variables and cleared
   them right after saving it, so it returned to address 0. All 18 events were played to the end in
