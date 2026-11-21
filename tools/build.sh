@@ -11,7 +11,7 @@
 #   tools/make_whdload.py   -> the WHDLoad versions (slave: src/whdload.s)
 set -e
 cd "$(dirname "$0")/.."
-export VER=${VER:-0.5}
+export VER=${VER:-0.6}
 ASM="python3 tools/fixbranch.py"
 mkdir -p build/gen build/full build/demo
 # the graphics and sounds of the events (generator [argument])

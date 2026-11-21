@@ -27,7 +27,7 @@ GEN = os.path.join(ROOT, 'build', 'gen')
 OUT = os.path.join(ROOT, 'print')
 TMP = os.path.join(ROOT, 'build', 'print')
 os.makedirs(OUT, exist_ok=True); os.makedirs(TMP, exist_ok=True)
-VER = os.environ.get('VER', '0.5')
+VER = os.environ.get('VER', '0.6')
 F = '/usr/share/fonts/truetype/dejavu/'
 for n, f in (('Sans', 'DejaVuSans.ttf'), ('SansB', 'DejaVuSans-Bold.ttf'), ('SansC', 'DejaVuSansCondensed.ttf'),
              ('SansCB', 'DejaVuSansCondensed-Bold.ttf'), ('Serif', 'DejaVuSerif.ttf'), ('SerifB', 'DejaVuSerif-Bold.ttf'),

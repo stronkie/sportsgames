@@ -8,7 +8,7 @@ Created By Mark Stronks, Stronkie Soft © 2026
 
 Written in 68000 assembly for a stock Amiga 500 with Kickstart / Workbench 1.3 and a 512K trapdoor expansion (1 MB). Runs from one bootable disk (or a Gotek), from hard drive / CF card and with WHDLoad. Play it with a joystick in port 2 (or the cursor keys and RETURN).
 
-**Version: V0.5 - TEST VERSION.** On itch.io: https://stronkie.itch.io/ (with a free demo).
+**Version: V0.6 - TEST VERSION.** On itch.io: https://stronkie.itch.io/ (with a free demo).
 
 ## The events
 
@@ -76,9 +76,9 @@ Written in 68000 assembly for a stock Amiga 500 with Kickstart / Workbench 1.3 a
 
 | File | What it is |
 |---|---|
-| `StronkiesOlympics_V0.5.adf` | The full game on one bootable disk (crunched) |
-| `StronkiesOlympics_V0.5_harddrive.zip` | Drawer `StronkiesOlympics` with everything: copy it to your hard drive / CF card and double click `SOlymp` |
-| `whdload/StronkiesOlympics_V0.5_WHDLoad.lha` | **WHDLoad version** (also as `.zip`): own slave (`src/whdload.s`), no Kickstart image needed, F10 quits |
+| `StronkiesOlympics_V0.6.adf` | The full game on one bootable disk (crunched) |
+| `StronkiesOlympics_V0.6_harddrive.zip` | Drawer `StronkiesOlympics` with everything: copy it to your hard drive / CF card and double click `SOlymp` |
+| `whdload/StronkiesOlympics_V0.6_WHDLoad.lha` | **WHDLoad version** (also as `.zip`): own slave (`src/whdload.s`), no Kickstart image needed, F10 quits |
 | `demo/` | The free demo: the opening ceremony and Soccer (1 disk, hard drive and WHDLoad) |
 
 **Requirements:** Amiga 500 (or any Amiga with a 68000) with Kickstart 1.3 and 1 MB: 512K chip + 512K trapdoor.

@@ -940,8 +940,8 @@ bg_rle	incbin	"soc_bg.rle"
 soc_chip	incbin	"soc_chip.bin"
 
 	section	bss,bss
+ev_sp		ds.l	1		; (outside vars: entry clears vars after setting it)
 vars
-ev_sp		ds.l	1
 kp_bob		ds.l	1
 ball_bob	ds.l	1
 sh_tab		ds.l	1
