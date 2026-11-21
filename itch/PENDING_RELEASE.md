@@ -17,7 +17,8 @@ Devlog: https://stronkie.itch.io/stronkies-olympics/devlog/1793883/stronkies-oly
 
 ## PUBLISHED 21 November 2026 (on Mark's request, not on a Sunday)
 V0.5 went to itch: the full game on one crunched disk (ADF zip + WHDLoad, paid at the page price),
-the crunched demo, the remade print kit, new title screenshot, devlog "One disk!".
+the crunched demo, the remade print kit (the V0.4 files are hidden on itch). Devlog:
+https://stronkie.itch.io/stronkies-olympics/devlog/1795587/one-disk-stronkies-olympics-v05-the-whole-game-crunched-onto-one-floppy
 
 ## Published versions
 ### V0.5 - TEST VERSION - 21 November 2026
