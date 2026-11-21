@@ -29,16 +29,26 @@ done
 # the floppy version is crunched (tools/crunch.py; unpacked by src/depack.s while loading)
 EVTS=$(cd build/full && ls *.evt)
 python3 tools/crunch_all.py build/full build/packed $EVTS
-# the list of the events, the disk each one goes on (needs the sizes of the crunched event files)
-python3 tools/events.py build/gen
-for v in full demo; do
-  if [ $v = demo ]; then export DEMO=1; else export DEMO=0; fi
-  python3 tools/make_main.py build/gen
-  python3 tools/make_loading.py build/gen
-  $ASM src/kernel.s -I build/gen -I src -o build/$v/SOlymp.game -map build/$v/SOlymp.map
-  $ASM src/loader.s -I build/gen -I src -o build/$v/SOlymp
+# the list of the events, the disk each one goes on (needs the sizes of the crunched files).
+# The size of the crunched main program is only known after it is built, so on a clean checkout
+# events.py has to guess it: build again until the disk plan stays the same.
+build_main() {
+  for v in full demo; do
+    if [ $v = demo ]; then export DEMO=1; else export DEMO=0; fi
+    python3 tools/make_main.py build/gen
+    python3 tools/make_loading.py build/gen
+    $ASM src/kernel.s -I build/gen -I src -o build/$v/SOlymp.game -map build/$v/SOlymp.map
+    $ASM src/loader.s -I build/gen -I src -o build/$v/SOlymp
+  done
+  python3 tools/crunch_all.py build/full build/packed SOlymp.game
+}
+for pass in 1 2 3; do
+  python3 tools/events.py build/gen
+  cat build/gen/events.i build/gen/events_equ.i > build/gen/events.plan
+  cmp -s build/gen/events.plan build/gen/events.plan.last && break
+  cp build/gen/events.plan build/gen/events.plan.last
+  build_main
 done
-python3 tools/crunch_all.py build/full build/packed SOlymp.game
 mkdir -p build/packed_demo; cp build/packed/*.evt build/packed/*.sha1 build/packed_demo/ 2>/dev/null || true
 python3 tools/crunch_all.py build/demo build/packed_demo SOlymp.game
 cp build/full/SOlymp.map build/SOlymp.map; cp build/full/SOlymp.game build/SOlymp.game
