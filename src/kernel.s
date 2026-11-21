@@ -1551,6 +1551,8 @@ load_event:
 	lsl.w	#2,d3
 	lea	hunk_base,a2
 	move.l	a0,(a2,d3.w)
+	lea	hunk_size,a2
+	move.l	d0,(a2,d3.w)
 	lsr.l	#2,d0			; clear it
 	subq.l	#1,d0
 .clr	clr.l	(a0)+
@@ -1573,7 +1575,19 @@ load_event:
 	beq.s	.reloc
 	cmp.l	#$3f2,d0
 	beq.s	.end
+	cmp.l	#HUNK_PACKED,d0
+	beq.s	.pack
 	bra	.bad
+.pack	lea	hunk_base,a0		; a crunched hunk (the floppy version)
+	move.w	d7,d3
+	lsl.w	#2,d3
+	move.l	(a0,d3.w),a1
+	lea	hunk_size,a0
+	move.l	(a0,d3.w),d2
+	bsr	unpack_hunk
+	tst.l	d0
+	beq	.bad
+	bra	.type
 .data	bsr	get_long
 	lsl.l	#2,d0
 	move.l	d0,d1
@@ -1584,11 +1598,11 @@ load_event:
 	bsr	read_block
 	tst.l	d0
 	beq	.bad
-	bra.s	.type
+	bra	.type
 .bss	bsr	get_long
-	bra.s	.type
+	bra	.type
 .end	addq.w	#1,d7
-	bra.s	.type
+	bra	.type
 .reloc	lea	hunk_base,a0
 	move.w	d7,d3
 	lsl.w	#2,d3
@@ -1702,6 +1716,8 @@ read_block:
 .err	moveq	#0,d0
 .x	movem.l	(sp)+,d1-d3/a0-a1/a6
 	rts
+
+	include	"depack.s"
 
 ;==============================================================================
 ;  the records file
@@ -1843,6 +1859,7 @@ buf_ptr		ds.l	1
 any_ptr		ds.l	1
 chip_ptr	ds.l	1
 hunk_base	ds.l	MAXHUNKS
+hunk_size	ds.l	MAXHUNKS
 mus_ptr		ds.l	2
 mus_start	ds.l	2
 mus_left	ds.w	2

@@ -32,7 +32,7 @@ MAKE YOUR OWN ATHLETE
   man or woman, skin and hair. Up to 4 players take turns. In every
   event you meet 3 athletes from other countries: gold, silver and
   bronze for the best 3, a medal table at the end, and world records
-  that are saved on disk 1.
+  that are saved on the game disk.
 
 WHAT YOU NEED
   An Amiga 500 (any Amiga with a 68000) with Kickstart 1.3 and 1 MB:
@@ -40,14 +40,11 @@ WHAT YOU NEED
   and RETURN). ESC gives up an event, M switches the music off.
   HOW TO PLAY in the menu explains every event.
 
-THE DISKS
-  The full game comes on 3 disks: boot disk 1 (Olympics1).
-    Disk 1: soccer, basketball, volleyball, bowling, surfing
-            (and the ceremonies and the world records)
-    Disk 2: skateboarding and the other events
-    Disk 3: the toilet paper throw
-  The game asks for the disk it needs. On a Gotek: switch the disk
-  image when the game asks.
+THE DISK
+  The full game is on ONE bootable disk (Olympics1): all 18 events,
+  both ceremonies and the world records. The files are crunched
+  (packed) and unpacked while they load: no disk swapping. Keep the
+  disk write-enabled to save your world records.
   Hard drive / CF card: unpack the hard drive zip (all files in one
   drawer) and double click SOlymp. WHDLoad: see the WHDLoad zip.
 

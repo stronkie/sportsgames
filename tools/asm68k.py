@@ -617,6 +617,10 @@ class Assembler:
             need(1); eb, ext = self.eabits(ops[0], 'l', 2)
             return self.out([(0x4ec0 if mnem == 'jmp' else 0x4e80) | eb], ext)
 
+        if mnem in ('addx', 'subx'):
+            need(2); kinds(0, 'dn'); kinds(1, 'dn')
+            base = 0xd100 if mnem == 'addx' else 0x9100
+            return self.out([base | (ops[1].reg << 9) | (szc() << 6) | ops[0].reg])
         if mnem in ('clr', 'neg', 'not', 'tst', 'negx'):
             need(1)
             base = {'clr': 0x4200, 'neg': 0x4400, 'not': 0x4600, 'tst': 0x4a00, 'negx': 0x4000}[mnem]

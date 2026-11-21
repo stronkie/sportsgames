@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """make_disk.py - builds the release files of Stronkie's Olympics:
 
-  build/StronkiesOlympics_V<ver>_Disk1.adf / _Disk2.adf   the full game on 2 bootable OFS disks
+  build/StronkiesOlympics_V<ver>_Disk1.adf / _Disk2.adf   the full game on bootable OFS disks (since V0.5: one disk, crunched)
   build/StronkiesOlympics_V<ver>_harddrive.zip            the drawer for a hard drive / CF card
   build/StronkiesOlympics_Demo.adf (+ _harddrive.zip)     the demo (DEMO=1: soccer only, 1 disk)
 
@@ -276,6 +276,9 @@ def main():
     demo = len(sys.argv) > 2 and sys.argv[2] == 'demo'
     B2 = os.path.join(ROOT, 'build', 'demo' if demo else 'full')
     rd = lambda n: open(os.path.join(B2, n), 'rb').read()
+    # the floppies get the crunched files (build/packed*, tools/crunch_all.py), the hard drive zip the plain ones
+    BP = os.path.join(ROOT, 'build', 'packed_demo' if demo else 'packed')
+    rdp = lambda n: open(os.path.join(BP, n), 'rb').read() if n != GAME and os.path.exists(os.path.join(BP, n)) else rd(n)
     readme = open(os.path.join(ROOT, 'ReadMe_Demo.txt' if demo else 'ReadMe.txt'), 'rb').read().replace(b'\r\n', b'\n')
     bsrc = os.path.join(B, 'boot.s')
     open(bsrc, 'w').write(BOOT_SRC)
@@ -285,9 +288,10 @@ def main():
     drawer_icon = diskobject(2, drawer_image())
     open(os.path.join(B2, GAME + '.info'), 'wb').write(tool_icon)
     main_files = [(GAME, rd(GAME)), (GAME + '.game', rd(GAME + '.game')), (GAME + '.info', tool_icon)]
+    disk_main = [(GAME, rd(GAME)), (GAME + '.game', rdp(GAME + '.game')), (GAME + '.info', tool_icon)]
     out = []
     if demo:
-        img, used = build_adf('Olympics1', main_files + [(f, rd(f)) for f in ('Ceremony.evt', 'Soccer.evt')], readme, boot)
+        img, used = build_adf('Olympics1', disk_main + [(f, rdp(f)) for f in ('Ceremony.evt', 'Soccer.evt')], readme, boot)
         name = 'StronkiesOlympics_Demo'
         open(os.path.join(B, name + '.adf'), 'wb').write(img); out.append((name + '.adf', used))
         evs = ['Ceremony.evt', 'Soccer.evt']
@@ -295,10 +299,10 @@ def main():
         name = 'StronkiesOlympics_V%s' % VER
         dl = disk_list(); evs = ['Ceremony.evt']
         for k in sorted(dl):
-            files = [(f, rd(f)) for f in dl[k]]
-            if k == 1: files = main_files + [('Ceremony.evt', rd('Ceremony.evt'))] + files
+            files = [(f, rdp(f)) for f in dl[k]]
+            if k == 1: files = disk_main + [('Ceremony.evt', rdp('Ceremony.evt'))] + files
             img, used = build_adf('Olympics%d' % k, files, readme, boot, startup=(k == 1))
-            fn = name + '_Disk%d.adf' % k
+            fn = name + ('_Disk%d.adf' % k if len(dl) > 1 else '.adf')
             open(os.path.join(B, fn), 'wb').write(img); out.append((fn, used))
             evs += dl[k]
     zname = os.path.join(B, name + '_harddrive.zip')

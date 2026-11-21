@@ -433,7 +433,19 @@ load_game:
 	beq.s	.reloc
 	cmp.l	#$3f2,d0
 	beq.s	.end
+	cmp.l	#HUNK_PACKED,d0
+	beq.s	.pack
 	bra	.bad
+.pack	lea	hunk_base,a0		; a crunched hunk (the floppy version)
+	move.w	d7,d3
+	lsl.w	#2,d3
+	move.l	(a0,d3.w),a1
+	lea	hunk_size,a0
+	move.l	(a0,d3.w),d2
+	bsr	unpack_hunk
+	tst.l	d0
+	beq	.bad
+	bra	.type
 .data	bsr	get_long
 	lsl.l	#2,d0
 	move.l	d0,d1
@@ -444,11 +456,11 @@ load_game:
 	bsr	read_block
 	tst.l	d0
 	beq	.bad
-	bra.s	.type
+	bra	.type
 .bss	bsr	get_long
-	bra.s	.type
+	bra	.type
 .end	addq.w	#1,d7
-	bra.s	.type
+	bra	.type
 .reloc	lea	hunk_base,a0
 	move.w	d7,d3
 	lsl.w	#2,d3
@@ -594,6 +606,8 @@ read_block:
 .err	moveq	#0,d0
 .x	movem.l	(sp)+,d1-d3/a0-a1/a6
 	rts
+
+	include	"depack.s"
 
 ;------------------------------------------------------------------ data
 gfxname		dc.b	'graphics.library',0

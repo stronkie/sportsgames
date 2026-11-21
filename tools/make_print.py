@@ -27,7 +27,7 @@ GEN = os.path.join(ROOT, 'build', 'gen')
 OUT = os.path.join(ROOT, 'print')
 TMP = os.path.join(ROOT, 'build', 'print')
 os.makedirs(OUT, exist_ok=True); os.makedirs(TMP, exist_ok=True)
-VER = os.environ.get('VER', '0.4')
+VER = os.environ.get('VER', '0.5')
 F = '/usr/share/fonts/truetype/dejavu/'
 for n, f in (('Sans', 'DejaVuSans.ttf'), ('SansB', 'DejaVuSans-Bold.ttf'), ('SansC', 'DejaVuSansCondensed.ttf'),
              ('SansCB', 'DejaVuSansCondensed-Bold.ttf'), ('Serif', 'DejaVuSerif.ttf'), ('SerifB', 'DejaVuSerif-Bold.ttf'),
@@ -36,6 +36,7 @@ for n, f in (('Sans', 'DejaVuSans.ttf'), ('SansB', 'DejaVuSans-Bold.ttf'), ('San
 COUNTRIES = ['NETHERLANDS', 'GERMANY', 'BELGIUM', 'FRANCE', 'BRITAIN', 'USA', 'CANADA', 'ITALY', 'SPAIN', 'SWEDEN', 'NORWAY',
              'DENMARK', 'JAPAN', 'BRAZIL', 'AUSTRALIA', 'POLAND', 'SWITZERLAND', 'AUSTRIA', 'IRELAND', 'MEXICO']
 NAVY, GOLD, RED, CREAM, INK = (0.07, 0.11, 0.30), (0.98, 0.78, 0.10), (0.80, 0.12, 0.12), (0.99, 0.97, 0.90), (0.10, 0.09, 0.08)
+CLASSIC = ('100M SPRINT', 'HURDLES', 'LONG JUMP', 'JAVELIN', 'ARCHERY', 'SWIMMING', 'WEIGHTLIFTING', 'CYCLING')
 DISKS = {}
 for l in open(os.path.join(GEN, 'disks.txt')):
     f, d = l.split(); DISKS[f] = int(d)
@@ -182,8 +183,8 @@ def event_block(c, e, x, y, w):
     name = e[0]
     c.setFillColorRGB(*NAVY); c.rect(x, y - 7 * mm, w, 7 * mm, fill=1, stroke=0)
     c.setFillColorRGB(*GOLD); c.setFont('SansB', 10.5); c.drawString(x + 2.5 * mm, y - 5 * mm, name)
-    tag = 'SILLY EVENT' if name in ('ROOT BEER SPRINT', 'PIE DODGE', 'PENGUIN CURLING', 'TOILET PAPER THROW') else 'DISK %d' % DISKS[e[1]]
-    if 'SILLY' in tag: tag += '  -  DISK %d' % DISKS[e[1]]
+    tag = 'SILLY EVENT' if name in ('ROOT BEER SPRINT', 'PIE DODGE', 'PENGUIN CURLING', 'TOILET PAPER THROW') else 'CLASSIC EVENT' if name in CLASSIC else 'SPORTS EVENT'
+    if max(DISKS.values()) > 1: tag += '  -  DISK %d' % DISKS[e[1]]
     c.setFillColorRGB(1, 1, 1); c.setFont('Sans', 6.5); c.drawRightString(x + w - 2.5 * mm, y - 4.8 * mm, tag)
     y -= 9 * mm
     pw = w * 0.42
@@ -245,9 +246,9 @@ def manual():
         c.setFillColorRGB(0.5, 0.5, 0.5); c.drawString(M + 3 * mm + c.stringWidth(t, 'Serif', 10), y, dots)
         c.setFillColorRGB(*NAVY); c.drawRightString(A5W - M, y, str(p))
     y -= 12 * mm
-    box_note(c, M, y, W, 'ON THESE DISKS', 'Disk 1 boots the game: the main program, the opening and closing ceremonies, the world '
-             'records and the first five events. Disk 2 holds skateboarding and twelve more events, disk 3 the toilet paper throw. '
-             'The game tells you when it needs another disk.')
+    box_note(c, M, y, W, 'ON THIS DISK', 'Everything is on one bootable disk: the main program, the opening and closing '
+             'ceremonies, all eighteen events and the world records. The files are crunched (packed) and unpacked while they '
+             'load, so there is no disk swapping at all.')
     c.showPage()
     # 3 welcome
     page_frame(c, 3, 'Welcome')
@@ -272,9 +273,9 @@ def manual():
     y = para(c, M, y, W, 'An Amiga 500 (or any Amiga with a 68000) with Kickstart 1.3 or higher and 1 MB of memory: '
              '512K chip memory plus the 512K trapdoor expansion. A joystick in port 2 - or the cursor keys and RETURN.')
     y = head(c, M, y - 6, 'From floppy disk', 10.5, RED)
-    y = para(c, M, y, W, 'Switch on the Amiga and put in disk 1. The loading picture appears and the opening ceremony starts '
-             '(press fire to skip it). When the game needs disk 2 or disk 3 it says "PLEASE INSERT DISK 2": swap the disk in the '
-             'drive and the game goes on by itself. Keep disk 1 write-enabled if you want your world records saved.')
+    y = para(c, M, y, W, 'Switch on the Amiga and put in the game disk. The loading picture appears and the opening ceremony '
+             'starts (press fire to skip it). Every event loads from the same disk when it starts: no disk swapping. Keep the '
+             'disk write-enabled if you want your world records saved.')
     y = head(c, M, y - 6, 'From hard drive', 10.5, RED)
     y = para(c, M, y, W, 'Copy the drawer StronkiesOlympics (from the hard drive zip) to your hard drive or CF card and '
              'double click SOlymp. All events are in that one drawer: no disk swapping.')
@@ -424,7 +425,10 @@ def manual():
              'a good player lifts around 200 kg.'),
             ('V0.3 - Anthems',
              'The gold medal winner now hears their national anthem. The melodies were read from old sheet music on '
-             'the internet by a small program written for this game, and all of them are old enough to be free to use.')]
+             'the internet by a small program written for this game, and all of them are old enough to be free to use.'),
+            ('V0.5 - Back to one disk',
+             'Three disks felt like a lot of swapping. A cruncher written for this game packs every file to about half its '
+             'size and the game unpacks it while it loads. Now all eighteen events fit on one disk - and they load faster.')]
     for t, s in log2:
         y = head(c, M, y - 2, t, 10, RED)
         y = para(c, M, y, W, s, 'Serif', 8.4, 10.8) - 6
@@ -442,7 +446,7 @@ def manual():
              'full speed, fire at the line, angle about 45.'),
             ('The level', 'On EASY the others are beatable for everybody, on HARD only a world class waggler wins gold.'),
             ('With friends', 'Up to 4 players take turns. The medal table at the end shows which country is the best.'),
-            ('World records', 'Records are only saved when disk 1 is write-enabled (or from hard drive / WHDLoad).'),
+            ('World records', 'Records are only saved when the game disk is write-enabled (or from hard drive / WHDLoad).'),
             ('Give up?', 'ESC ends the event: you get no result for it, but the Games go on.')]
     for t, s in tips:
         y = head(c, M, y - 2, t, 10, RED)
@@ -504,7 +508,7 @@ def manual():
 LW, LH, STRIP = 70 * mm, 70 * mm, 16 * mm
 
 def label(c, x, y, disk, bw):
-    """one label, x, y its bottom left; disk: 1, 2, 3 or 'DEMO'"""
+    """one label, x, y its bottom left; disk: 'GAME' (the full game, one disk) or 'DEMO'"""
     ink = (0, 0, 0)
     bg = (1, 1, 1) if bw else (0.99, 0.97, 0.90)
     top = NAVY if not bw else (0, 0, 0)
@@ -515,7 +519,7 @@ def label(c, x, y, disk, bw):
     c.setFillColorRGB(1, 1, 1); c.setFont('SansB', 9)
     c.drawCentredString(x + LW / 2, y + LH - 7 * mm, "STRONKIE'S OLYMPICS")
     c.setFont('Sans', 6.5)
-    c.drawCentredString(x + LW / 2, y + LH - 12 * mm, ('DEMO DISK' if disk == 'DEMO' else 'DISK %d OF 3' % disk) + '   -   STRONKIE SOFT')
+    c.drawCentredString(x + LW / 2, y + LH - 12 * mm, ('DEMO DISK' if disk == 'DEMO' else 'GAME DISK') + '   -   STRONKIE SOFT')
     c.setStrokeColorRGB(0.4, 0.4, 0.4); c.setDash(1, 2); c.line(x, y + LH - STRIP, x + LW, y + LH - STRIP); c.setDash()
     c.setFillColorRGB(0.45, 0.45, 0.45); c.setFont('Sans', 4.3); c.drawRightString(x + LW - 1.5 * mm, y + LH - STRIP - 2.5 * mm, 'fold')
     # the front
@@ -527,16 +531,13 @@ def label(c, x, y, disk, bw):
     h = picture(c, lg, x + 4 * mm, yy, LW - 8 * mm, frame=False)
     yy = h - 4.5 * mm
     c.setFillColorRGB(*(RED if not bw else ink)); c.setFont('SansB', 11)
-    c.drawString(x + 4 * mm, yy, 'DEMO' if disk == 'DEMO' else 'DISK %d' % disk)
+    c.drawString(x + 4 * mm, yy, 'DEMO' if disk == 'DEMO' else 'GAME DISK')
     c.setFillColorRGB(*ink); c.setFont('Sans', 6.2)
     c.drawRightString(x + LW - 4 * mm, yy, 'AMIGA 500  -  V%s' % ('DEMO' if disk == 'DEMO' else VER))
     yy -= 5 * mm
-    if disk == 'DEMO': lines = ['Opening ceremony + Soccer (free demo)', 'Bootable in DF0:', 'The full game: 18 events on 3 disks']
-    elif disk == 1: lines = ['BOOT DISK: game, ceremonies, records', 'Soccer, Basketball, Volleyball,', 'Bowling, Surfing',
-                             'Write-enable to save world records']
-    elif disk == 2: lines = ['Skateboarding, 100m Sprint, Hurdles,', 'Long Jump, Javelin, Archery, Swimming,',
-                             'Weightlifting, Cycling, Root Beer Sprint,', 'Pie Dodge, Penguin Curling']
-    else: lines = ['Toilet Paper Throw', '', 'The game asks for this disk', 'when it needs it']
+    if disk == 'DEMO': lines = ['Opening ceremony + Soccer (free demo)', 'Bootable in DF0:', 'The full game: 18 events on one disk']
+    else: lines = ['All 18 events, both ceremonies and', 'the world records on one disk', 'Bootable in DF0:  -  no disk swapping',
+                   'Write-enable to save world records']
     c.setFont('SansC', 6)
     for l in lines: c.drawString(x + 4 * mm, yy, l); yy -= 2.7 * mm
     c.setStrokeColorRGB(*ink); c.setLineWidth(0.4); c.line(x + 4 * mm, y + 9.5 * mm, x + LW - 4 * mm, y + 9.5 * mm)
@@ -556,7 +557,7 @@ def labels():
         c.drawString(20 * mm, H - 19 * mm, 'Print at 100% (actual size, not "fit to page"). Each label is 70 x 70 mm; the top strip folds over the top edge of the disk.')
         gx, gy = 30 * mm, 14 * mm
         x0 = (W - 2 * LW - gx) / 2
-        for i, d in enumerate([1, 2, 3, 'DEMO', 1, 2]):
+        for i, d in enumerate(['GAME', 'GAME', 'GAME', 'DEMO', 'GAME', 'GAME']):
             col, row = i % 2, i // 2
             label(c, x0 + col * (LW + gx), H - 30 * mm - (row + 1) * LH - row * gy, d, bw)
         c.showPage()
@@ -652,7 +653,7 @@ def back_art():
     for t in feats:
         d.ellipse([9 * DPI, y + 1 * DPI, 11 * DPI, y + 3 * DPI], fill=(250, 200, 30)); d.text((13 * DPI, y), t, font=fb, fill=(255, 255, 255)); y += 4.3 * DPI
     d.rectangle([0, H - 13 * DPI, W, H], fill=(250, 200, 30))
-    d.text((6 * DPI, H - 11 * DPI), 'Amiga 500 · Kickstart 1.3 · 1 MB (512K + 512K) · 3 disks · hard drive & WHDLoad', font=font(2.8 * DPI), fill=(10, 14, 40))
+    d.text((6 * DPI, H - 11 * DPI), 'Amiga 500 · Kickstart 1.3 · 1 MB (512K + 512K) · 1 disk · hard drive & WHDLoad', font=font(2.8 * DPI), fill=(10, 14, 40))
     d.text((6 * DPI, H - 6.5 * DPI), "Created By Mark Stronks, Stronkie Soft © 2026 · stronkie.itch.io", font=font(2.8 * DPI, False), fill=(10, 14, 40))
     return im
 
@@ -672,7 +673,7 @@ def side_art():
     t = Image.new('RGB', (H, W), (250, 200, 30)); td = ImageDraw.Draw(t)
     td.text((6 * DPI, 3 * DPI), 'SYSTEM REQUIREMENTS', font=font(4.4 * DPI), fill=(10, 14, 40))
     rows = ['Amiga 500 (or any Amiga with a 68000)', 'Kickstart / Workbench 1.3 or higher', '1 MB: 512K chip + 512K trapdoor expansion',
-            'Joystick in port 2 (or keyboard)', 'PAL', '3 disks (3.5" DD) - also for hard drive and WHDLoad']
+            'Joystick in port 2 (or keyboard)', 'PAL', '1 disk (3.5" DD) - also for hard drive and WHDLoad']
     for i, r in enumerate(rows):
         td.text((6 * DPI + (i // 3) * 92 * DPI, 10 * DPI + (i % 3) * 5.6 * DPI), '· ' + r, font=font(3.4 * DPI, False), fill=(10, 14, 40))
     return t.rotate(90, expand=True)
@@ -738,7 +739,7 @@ def box():
     if h > PH - 30 * mm: h = PH - 30 * mm; w = h * r.size[0] / r.size[1]
     c.drawImage(ImageReader(r), (PW - w) / 2, 12 * mm, w, h, mask='auto')
     c.setFillColorRGB(*NAVY); c.setFont('SansB', 14); c.drawString(14 * mm, PH - 14 * mm, "STRONKIE'S OLYMPICS - THE BOX")
-    c.setFont('Sans', 9); c.drawString(14 * mm, PH - 20 * mm, 'Amiga 500 · 3 disks · manual · Created By Mark Stronks, Stronkie Soft')
+    c.setFont('Sans', 9); c.drawString(14 * mm, PH - 20 * mm, 'Amiga 500 · 1 disk · manual · Created By Mark Stronks, Stronkie Soft')
     c.showPage()
     c.save()
     return path

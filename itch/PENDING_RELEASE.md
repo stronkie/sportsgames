@@ -10,12 +10,28 @@ on request. The full game files (V0.1 ADFs, hard drive zip, WHDLoad) are NOT upl
 V0.2, V0.3 and V0.4 went to itch together: the full game V0.4 (3 ADFs in one zip + WHDLoad, paid at the page
 price 2.00 EUR), the new demo, the print kit, new description, 14 new screenshots, new cover, status Released.
 Devlog: https://stronkie.itch.io/stronkies-olympics/devlog/1793883/stronkies-olympics-is-out-18-events-national-anthems-and-the-amiga-look
-Nothing is waiting now; new builds go below.
+(V0.5 followed on 21 November, see below.)
 
 ## Versions waiting to be published
 (none)
 
+## PUBLISHED 21 November 2026 (on Mark's request, not on a Sunday)
+V0.5 went to itch: the full game on one crunched disk (ADF zip + WHDLoad, paid at the page price),
+the crunched demo, the remade print kit, new title screenshot, devlog "One disk!".
+
 ## Published versions
+### V0.5 - TEST VERSION - 21 November 2026
+- The whole game on ONE disk: all 18 events, both ceremonies, the anthems and the world records.
+  No more disk swapping
+- Our own cruncher (tools/crunch.py: LZ77, gamma codes, "same offset again" matches, optimal parse)
+  packs every floppy file to about half its size: 1.75 MB of game -> 1729 of 1760 blocks
+- Every hunk is unpacked in place while it loads (src/depack.s, in the loader and the kernel):
+  no extra memory needed, still 512K + 512K. Faster loading from floppy: less than half as much
+  is read, unpacking takes about a second per event on a 7 MHz 68000
+- The free demo is crunched too; hard drive and WHDLoad versions stay unpacked (as fast as before)
+- Manual, disk labels (now one GAME DISK label) and box remade for one disk; title screenshot shows V0.5
+- Assembler and test bench learned ADDX/SUBX
+
 ### V0.4 - TEST VERSION - 20 November 2026
 - New Amiga look for every screen: real stadium stands (roof, floodlights, rows of spectators,
   aisles) instead of coloured dots, sponsor boards, dithered grass, tracks, water, ice, sand and wood,

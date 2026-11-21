@@ -1044,6 +1044,17 @@ class Amiga:
             v, loc = self.read_ea(mode, reg, size)
             r = v ^ (self.d[rn] & MASK[size]); self.flags_logic(r, size)
             self.write_loc(loc, size, r); self.cycles += 8; return
+        if not todn and mode == 0 and hi in (0xd, 9):   # addx / subx Dy,Dx
+            m = MASK[size]; sv = self.d[reg] & m; dv = self.d[rn] & m; z = self.Z
+            if hi == 0xd: r = self.do_add(sv, dv, size, self.X)
+            else:
+                r = (dv - sv - self.X) & m; c = 1 if sv + self.X > dv else 0
+                self.C = self.X = c; self.N = 1 if r & MSB[size] else 0
+                self.V = 1 if ((sv ^ dv) & (r ^ dv)) & MSB[size] else 0
+            if r == 0: self.Z = z
+            else: self.Z = 0
+            self.d[rn] = (self.d[rn] & ~m & M32) | r
+            self.cycles += 8 if size == 4 else 4; return
         if not todn and mode in (0, 1):
             raise EmuError('addx/subx/abcd/sbcd not supported at $%06x' % self.lastpc)
         if todn:

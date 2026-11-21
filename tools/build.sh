@@ -6,11 +6,12 @@
 #   tools/ev_*.py           -> build/gen: the graphics and sounds of every event and the ceremonies
 #   tools/events.py         -> build/gen/events*.i, disks.txt: the 18 events, their disks, the records
 #   tools/asm68k.py         -> SOlymp (loader), SOlymp.game (kernel.s + main.s), *.evt (ev_*.s)
-#   tools/make_disk.py      -> the ADFs (full game: several disks, demo: 1 disk) and the hard drive zips
+#   tools/crunch_all.py     -> build/packed: the crunched files for the floppies (tools/crunch.py, src/depack.s)
+#   tools/make_disk.py      -> the ADFs (full game and demo: 1 disk each, crunched) and the hard drive zips
 #   tools/make_whdload.py   -> the WHDLoad versions (slave: src/whdload.s)
 set -e
 cd "$(dirname "$0")/.."
-export VER=${VER:-0.4}
+export VER=${VER:-0.5}
 ASM="python3 tools/fixbranch.py"
 mkdir -p build/gen build/full build/demo
 # the graphics and sounds of the events (generator [argument])
@@ -25,7 +26,10 @@ for e in soccer:Soccer basket:Basket volley:Volley bowling:Bowling surf:Surfing 
   $ASM src/ev_$n.s -I build/gen -I src -o build/full/$f.evt -map build/$f.map
   cp build/full/$f.evt build/demo/$f.evt
 done
-# the list of the events, the disk each one goes on (needs the sizes of the event files)
+# the floppy version is crunched (tools/crunch.py; unpacked by src/depack.s while loading)
+EVTS=$(cd build/full && ls *.evt)
+python3 tools/crunch_all.py build/full build/packed $EVTS
+# the list of the events, the disk each one goes on (needs the sizes of the crunched event files)
 python3 tools/events.py build/gen
 for v in full demo; do
   if [ $v = demo ]; then export DEMO=1; else export DEMO=0; fi
@@ -34,6 +38,9 @@ for v in full demo; do
   $ASM src/kernel.s -I build/gen -I src -o build/$v/SOlymp.game -map build/$v/SOlymp.map
   $ASM src/loader.s -I build/gen -I src -o build/$v/SOlymp
 done
+python3 tools/crunch_all.py build/full build/packed SOlymp.game
+mkdir -p build/packed_demo; cp build/packed/*.evt build/packed/*.sha1 build/packed_demo/ 2>/dev/null || true
+python3 tools/crunch_all.py build/demo build/packed_demo SOlymp.game
 cp build/full/SOlymp.map build/SOlymp.map; cp build/full/SOlymp.game build/SOlymp.game
 mkdir -p build/disk; cp build/full/*.evt build/disk/
 python3 tools/make_disk.py "$VER"
